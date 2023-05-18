@@ -1,8 +1,9 @@
 {
-  "name": "electron-react-demo",
+  "name": "attack-tree-analysis",
   "version": "0.1.0",
   "author": "Yathuvaran",
   "description": "AT-AT",
+  "license": "MIT",
   "private": true,
   "main": "public/electron.js",
   "homepage": "./",
@@ -16,10 +17,10 @@
     "cross-env": "^7.0.3",
     "electron-squirrel-startup": "^1.0.0",
     "file-saver": "^2.0.5",
-    "react": "^17.0.2",
+    "react": "^16.0.0",
     "react-codemirror2": "^7.2.1",
     "react-d3-tree": "^3.2.0",
-    "react-dom": "^17.0.2",
+    "react-dom": "^16.0.0",
     "react-scripts": "4.0.3",
     "web-vitals": "^1.1.2",
     "@electron-forge/cli": "^6.0.0-beta.63",
@@ -33,14 +34,14 @@
     "wait-on": "^6.0.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "dev": "concurrently -k \"cross-env BROWSER=none npm start\" \"npm:electron\"",
-    "electron": "wait-on tcp:3000 && electron-forge start",
-    "package": "react-scripts build && electron-forge package",
-    "make": "react-scripts build && electron-forge make"
+    "start":      "react-scripts start",
+    "build":      "react-scripts build",
+    "test":       "react-scripts test",
+    "eject":      "react-scripts eject",
+    "dev":        "concurrently -k \"cross-env BROWSER=none npm start\" \"npm:electron\"",
+    "electron":   "wait-on tcp:3000 && electron-forge start",
+    "package":    "react-scripts build && electron-forge package",
+    "make":       "react-scripts build && electron-forge make"
   },
   "browserslist": {
     "production": [

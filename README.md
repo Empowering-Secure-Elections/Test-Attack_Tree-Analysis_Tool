@@ -39,5 +39,24 @@ You will also see any lint errors in the console.
 
 ### `npm run make`
 
-Complies the app as an executable for distribution to the `out` folder. It correctly bundles React in production mode and optimizes the app for the best performance.The app is minified and the filenames include the hashes.
+Complies the app as an executable for distribution to the `out` folder.
+It correctly bundles React in production mode and optimizes the app for the best performance.
+The app is minified and the filenames include the hashes.
 
+#### How to build linux binaries under 'node:16-alpine' docker image
+
+- `apk add git rpm dpkg fakeroot`
+- `npm install`
+- `npm run make`
+
+#### How to build windows binaries under 'mcr.microsoft.com/windows:20H2' docker image
+
+- Dependencies:
+  - Install node 16 (from https://nodejs.org/download/release/v16.20.0/node-v16.20.0-x64.msi )
+    `curl -O https://nodejs.org/download/release/v16.20.0/node-v16.20.0-x64.msi
+     start /wait msiexec /i node-v16.20.0-x64.msi /qn`
+  - Install git (from https://git-scm.com/download/win )
+    `curl -O https://github.com/git-for-windows/git/releases/download/v2.40.1.windows.1/Git-2.40.1-64-bit.exe
+     start /wait Git-2.40.1-64-bit.exe /SILENT`
+- `npm install`
+- `npm run make`
