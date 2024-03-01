@@ -1,0 +1,28 @@
+npm install -g concurrent
+npm install --global cross-env
+npm install -g wait-on
+npm install react-scripts@latest
+npm install react
+
+
+NO QUOTES IN THREATS
+
+
+
+Components and controllers to review
+--------------------
+AttackTreeController.js
+VerifyMetrics(metrics):
+
+TreeAnalyzerController:
+line 
+
+
+MenuBar.js
+generaterecommendations function
+
+RecommendationBox.js
+generaterecommendations
+
+App.js
+Columns

@@ -96,7 +96,7 @@ export default class TreeAnalyzerController {
       if (pathSeverity[i]["l"] == -1) {
         pathSeverity[i]["l"] = "N/A";
       } else {
-        pathSeverity[i]["l"] = pathSeverity[i]["l"].toFixed(2);
+        pathSeverity[i]["l"] = pathSeverity[i]["l"].toFixed(4);
       }
       
       if (pathSeverity[i]["v"].length == 0) {
@@ -110,7 +110,7 @@ export default class TreeAnalyzerController {
         for (var j = 0; j < pathSeverity[i]["v"].length; j++) {
           sum += pathSeverity[i]["v"][j];
         }
-        pathSeverity[i]["v"] = (sum / pathSeverity[i]["v"].length).toFixed(2);
+        pathSeverity[i]["v"] = (sum / pathSeverity[i]["v"].length).toFixed(4);
       }
       if (pathSeverity[i]["r"].length == 0) {
         pathSeverity[i]["r"] = "N/A";
@@ -119,7 +119,7 @@ export default class TreeAnalyzerController {
         for (var j = 0; j < pathSeverity[i]["r"].length; j++) {
           sum += pathSeverity[i]["r"][j];
         }
-        pathSeverity[i]["r"] = (sum / pathSeverity[i]["r"].length).toFixed(2);
+        pathSeverity[i]["r"] = (sum / pathSeverity[i]["r"].length).toFixed(4);
       }
       if (pathSeverity[i]["t"].length == 0) {
         pathSeverity[i]["t"] = "N/A";
@@ -128,7 +128,7 @@ export default class TreeAnalyzerController {
         for (var j = 0; j < pathSeverity[i]["t"].length; j++) {
           sum += pathSeverity[i]["t"][j];
         }
-        pathSeverity[i]["t"] = (sum / pathSeverity[i]["t"].length).toFixed(2);
+        pathSeverity[i]["t"] = (sum / pathSeverity[i]["t"].length).toFixed(4);
       }
     }
     console.log(pathSeverity);
