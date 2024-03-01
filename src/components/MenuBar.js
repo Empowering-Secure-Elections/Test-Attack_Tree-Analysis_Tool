@@ -102,10 +102,10 @@ class MenuBar extends Component {
   generateRecommendations(scenarioData) {
     // Local map for metrics to full names.
     var metrics = {
-      l: "Likelihood",
-      v: "Victim Impact",
-      r: "Resource Points",
-      t: "Time Difficulty Ratio",
+      o: "Occurrence Score",
+      a: "Attack Cost",
+      t: "Technical Difficulty",
+      d: "Discovery Difficulty",
     };
     // Define local variables to store rows and count for a unique key.
     var rows;
