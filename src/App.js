@@ -36,20 +36,20 @@ const columns = [
     title: "Severity",
     children: [
       {
-        title: "L",
-        dataIndex: "l",
+        title: "O",
+        dataIndex: "o",
       },
       {
-        title: "V",
-        dataIndex: "v",
-      },
-      {
-        title: "R",
-        dataIndex: "r",
+        title: "A",
+        dataIndex: "a",
       },
       {
         title: "T",
         dataIndex: "t",
+      },
+      {
+        title: "D",
+        dataIndex: "d",
       },
     ],
   },

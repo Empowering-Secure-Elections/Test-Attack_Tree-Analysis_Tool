@@ -299,10 +299,10 @@ export default class AttackTreeController {
    */
   verifyMetrics(metrics) {
     // all metrics values we use in our system
-    var metricsArr = ["l", "v", "r", "t"];
+    var metricsArr = ["o", "a", "t", "d"];
     var set = new Set();
     // Regex to ensure metrics are properly formatted.
-    const regex = /^\w=(1\.0|[0]\.\d|[0-1])$/g;
+    const regex = /^\w=(1\.0|[0]\.\d|[0-5])$/g;
     for (var i = 1; i < metrics.length; i++) {
       //check for proper syntax
       if (metrics[i].match(regex) == null) {
@@ -317,7 +317,7 @@ export default class AttackTreeController {
         return [
           false,
           "Incorrect Metrics Syntax",
-          "Metric(s) Value should be l,v,r, or t",
+          "Metric(s) Value should be o,a,t, or d",
         ];
       }
       set.add(key_val[0]);
