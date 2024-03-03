@@ -9,7 +9,7 @@ export default class TreeAnalyzerController {
     // Initialize empty path severity array.
     var pathSeverity = [];
     // Array to hold metric characters.
-    var metrics = ["l", "v", "r", "t"];
+    var metrics = ["o", "v", "t", "d"];
     // Get the generated paths for a tree.
     var paths = this.generatePaths(tree);
     // Iterate across paths and add to the front of pathSeverity.
@@ -48,24 +48,24 @@ export default class TreeAnalyzerController {
           });
 
           console.log(paths[i][j]["metrics"]);
-          if (paths[i][j]["metrics"]["l"] !== undefined) {
-            if (pathSeverity[0]["l"] == -1) {
-              pathSeverity[0]["l"] = paths[i][j]["metrics"]["l"];
+          if (paths[i][j]["metrics"]["o"] !== undefined) {
+            if (pathSeverity[0]["o"] == -1) {
+              pathSeverity[0]["o"] = paths[i][j]["metrics"]["o"];
             } else {
-              pathSeverity[0]["l"] *= paths[i][j]["metrics"]["l"];
+              pathSeverity[0]["o"] *= paths[i][j]["metrics"]["o"];
             }
           }
 
-          if (paths[i][j]["metrics"]["v"] !== undefined) {
-            pathSeverity[0]["v"].push(paths[i][j]["metrics"]["v"]);
-          }
-
-          if (paths[i][j]["metrics"]["r"] !== undefined) {
-            pathSeverity[0]["r"].push(paths[i][j]["metrics"]["r"]);
+          if (paths[i][j]["metrics"]["a"] !== undefined) {
+            pathSeverity[0]["a"].push(paths[i][j]["metrics"]["a"]);
           }
 
           if (paths[i][j]["metrics"]["t"] !== undefined) {
             pathSeverity[0]["t"].push(paths[i][j]["metrics"]["t"]);
+          }
+
+          if (paths[i][j]["metrics"]["d"] !== undefined) {
+            pathSeverity[0]["d"].push(paths[i][j]["metrics"]["d"]);
           }
         }
 
@@ -93,33 +93,24 @@ export default class TreeAnalyzerController {
       if (pathSeverity[i]["severity"] == 0) {
         pathSeverity[i]["severity"] = "N/A";
       }
-      if (pathSeverity[i]["l"] == -1) {
-        pathSeverity[i]["l"] = "N/A";
+      if (pathSeverity[i]["o"] == -1) {
+        pathSeverity[i]["o"] = "N/A";
       } else {
-        pathSeverity[i]["l"] = pathSeverity[i]["l"].toFixed(4);
+        pathSeverity[i]["o"] = pathSeverity[i]["o"].toFixed(4);
       }
       
-      if (pathSeverity[i]["v"].length == 0) {
+      if (pathSeverity[i]["a"].length == 0) {
         console.log("in N/A")
-        console.log(pathSeverity[i]["v"])
-        pathSeverity[i]["v"] = "N/A";
+        console.log(pathSeverity[i]["a"])
+        pathSeverity[i]["a"] = "N/A";
       } else {
         console.log("Not in N/A")
-        console.log(pathSeverity[i]["v"])
+        console.log(pathSeverity[i]["a"])
         var sum = 0;
-        for (var j = 0; j < pathSeverity[i]["v"].length; j++) {
-          sum += pathSeverity[i]["v"][j];
+        for (var j = 0; j < pathSeverity[i]["a"].length; j++) {
+          sum += pathSeverity[i]["a"][j];
         }
-        pathSeverity[i]["v"] = (sum / pathSeverity[i]["v"].length).toFixed(4);
-      }
-      if (pathSeverity[i]["r"].length == 0) {
-        pathSeverity[i]["r"] = "N/A";
-      } else {
-        var sum = 0;
-        for (var j = 0; j < pathSeverity[i]["r"].length; j++) {
-          sum += pathSeverity[i]["r"][j];
-        }
-        pathSeverity[i]["r"] = (sum / pathSeverity[i]["r"].length).toFixed(4);
+        pathSeverity[i]["a"] = (sum / pathSeverity[i]["a"].length).toFixed(4);
       }
       if (pathSeverity[i]["t"].length == 0) {
         pathSeverity[i]["t"] = "N/A";
@@ -129,6 +120,15 @@ export default class TreeAnalyzerController {
           sum += pathSeverity[i]["t"][j];
         }
         pathSeverity[i]["t"] = (sum / pathSeverity[i]["t"].length).toFixed(4);
+      }
+      if (pathSeverity[i]["d"].length == 0) {
+        pathSeverity[i]["d"] = "N/A";
+      } else {
+        var sum = 0;
+        for (var j = 0; j < pathSeverity[i]["d"].length; j++) {
+          sum += pathSeverity[i]["d"][j];
+        }
+        pathSeverity[i]["d"] = (sum / pathSeverity[i]["d"].length).toFixed(4);
       }
     }
     console.log(pathSeverity);
@@ -202,7 +202,7 @@ export default class TreeAnalyzerController {
   }
 
   getMetrics(tree) {
-    return { l: tree["l"], v: tree["v"], r: tree["r"], t: tree["t"] };
+    return { l: tree["o"], v: tree["a"], r: tree["t"], t: tree["d"] };
   }
 
   /**
@@ -211,7 +211,7 @@ export default class TreeAnalyzerController {
    * @return {number} The number representing the average of the metrics.
    */
   calculateAverage(leaf) {
-    var metrics = ["l", "v", "r", "t"];
+    var metrics = ["o", "a", "t", "d"];
     var weight = 0;
     // Counter for the number of metrics actually present.
     var num = 0;
