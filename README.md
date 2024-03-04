@@ -1,6 +1,6 @@
 # AT-AT (Attack Tree Analysis Tool)
 
-AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop and analyze attack trees. The overall goal is to automatically generate a set of possible attack scenarios that can be used to provide guidance for how to improve the design of the system to which the attack tree belongs to.
+AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop and analyze attack trees. The overall goal is to automatically generate a set of possible attack scenarios that can be used to provide guidance for how to improve the design of the system to which the attack tree belongs to. This project is a fork of https://github.com/yathuvaran/AT-AT and as such has many references to the original team and copied material. As we continue to update, it will and expand on the original.
 
 ## Features
 
