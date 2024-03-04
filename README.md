@@ -60,3 +60,6 @@ The app is minified and the filenames include the hashes.
      start /wait Git-2.40.1-64-bit.exe /SILENT`
 - `npm install`
 - `npm run make`
+
+
+test
