@@ -9,7 +9,7 @@ export default class TreeAnalyzerController {
     // Initialize empty path severity array.
     var pathSeverity = [];
     // Array to hold metric characters.
-    var metrics = ["o", "v", "t", "d"];
+    var metrics = ["o", "a", "t", "d"];
     // Get the generated paths for a tree.
     var paths = this.generatePaths(tree);
     // Iterate across paths and add to the front of pathSeverity.
@@ -24,10 +24,10 @@ export default class TreeAnalyzerController {
         path: [],
         severity: 0,
         highestMetrics: {},
-        l: -1,
-        v: [],
-        r: [],
+        o: -1,
+        a: [],
         t: [],
+        d: [],
         tupledSeverity: "",
       });
       // Iterate across the nodes in each path and push that node to the path.
@@ -112,6 +112,7 @@ export default class TreeAnalyzerController {
         }
         pathSeverity[i]["a"] = (sum / pathSeverity[i]["a"].length).toFixed(4);
       }
+      
       if (pathSeverity[i]["t"].length == 0) {
         pathSeverity[i]["t"] = "N/A";
       } else {
@@ -121,6 +122,7 @@ export default class TreeAnalyzerController {
         }
         pathSeverity[i]["t"] = (sum / pathSeverity[i]["t"].length).toFixed(4);
       }
+      
       if (pathSeverity[i]["d"].length == 0) {
         pathSeverity[i]["d"] = "N/A";
       } else {

@@ -302,7 +302,7 @@ export default class AttackTreeController {
     var metricsArr = ["o", "a", "t", "d"];
     var set = new Set();
     // Regex to ensure metrics are properly formatted.
-    const regex = /^\w=(1\.0|[0]\.\d|[0-5])$/g;
+    const regex = /^\w=(1\.0|[0]\.\d+|[0-5])$/g;
     for (var i = 1; i < metrics.length; i++) {
       //check for proper syntax
       if (metrics[i].match(regex) == null) {
