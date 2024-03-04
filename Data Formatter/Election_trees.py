@@ -59,9 +59,9 @@ class Election_Trees():
                     new_line=(("\t"*indent_level)+ 
                             row['threat_description'] + 
                             ";o=" + str(row['Occurrence_Score']) +
-                            ";a=" + str(row['AC']) +
-                            ";t=" + str(row['TD']) +
-                            ";d=" + str(row['DD'])
+                            ";a=" + str(row['AC']/5) +
+                            ";t=" + str(row['TD']/5) +
+                            ";d=" + str(row['DD']/5)
                             )
                     
                 f_out.write(new_line + "\n")

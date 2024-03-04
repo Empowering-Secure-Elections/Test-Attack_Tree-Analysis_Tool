@@ -204,7 +204,7 @@ export default class TreeAnalyzerController {
   }
 
   getMetrics(tree) {
-    return { l: tree["o"], v: tree["a"], r: tree["t"], t: tree["d"] };
+    return { o: tree["o"], a: tree["a"], t: tree["t"], d: tree["d"] };
   }
 
   /**

@@ -1,0 +1,147 @@
+	Insider attack;OR
+		Edit marked ballots;OR
+			Edit at local elections office;OR
+				Edit during duplication;AND
+					 Form collaboration of poll workers;o=0.08;a=0.8;t=0.4;d=0.4
+					 Gain exclusive access to ballots;o=0.07;a=0.8;t=0.6;d=0.4
+					 Mark under/over votes or changes votes;o=0.07;a=0.6;t=0.8;d=0.4
+				 Edit during counting;o=0.06;a=1.0;t=0.6;d=0.6
+				 Edit during other handling;o=0.06;a=0.6;t=0.8;d=0.6
+			Edit in transit;OR
+				Edit in post office;AND
+					 Form collaboration with mail worker and acquire access;o=0.07;a=1.0;t=0.6;d=0.4
+					 Break into post office;o=0.05;a=1.0;t=0.8;d=0.8
+					 Edit in post office;o=0.06;a=0.6;t=0.8;d=0.6
+				Gain exclusive access to intermediate mailroom;AND
+					 Form collaboration with mail worker and acquire access;o=0.07;a=1.0;t=0.6;d=0.4
+					 Break into intermediate mailroom;o=0.05;a=1.0;t=0.8;d=0.6
+					 Edit in intermediate mailroom;o=0.09;a=0.6;t=0.4;d=0.4
+		Discard marked ballot;OR
+			Challenge committed ballot;OR
+				Errant challenge;OR
+					 Judge misinterprets rule;o=0.07;a=0.6;t=0.4;d=0.8
+					 Errant failed signature;o=0.12;a=0.2;t=0.4;d=0.8
+				Malicious challenge;OR
+					 Challenge signature;o=0.08;a=0.4;t=0.6;d=0.6
+					 Challenge postmark;o=0.08;a=0.4;t=0.6;d=0.6
+					 Challenge intent;o=0.09;a=0.4;t=0.6;d=0.4
+			Marked ballot lost in the mail;OR
+				 Malicious loss;o=0.08;a=0.8;t=0.4;d=0.4
+				 Accidental loss;o=0.1;a=0.4;t=0.4;d=0.4
+			Discard marked ballots at local elections office;OR
+				Delete during duplication;AND
+					 Form collaboration of poll workers;o=0.15;a=1.0;t=0.2;d=0.2
+					 Gain exclusive access to ballots;o=0.07;a=0.8;t=0.6;d=0.4
+					 Overcome controls;o=0.06;a=0.8;t=0.8;d=0.6
+				 Remove during counting;o=0.06;a=0.8;t=0.6;d=0.6
+				 Mark registration system to reflect duplicate;o=0.05;a=0.8;t=0.8;d=0.8
+				 Remove during other handling;o=0.07;a=0.6;t=0.6;d=0.6
+		Miscount duplicated ballots;OR
+			Count original and duplicate;AND
+				 File duplicate with duplicated ballot;o=0.06;a=0.8;t=0.6;d=0.6
+				 Defeat ballot accounting;o=0.05;a=0.8;t=0.8;d=0.8
+			 Omit original and duplicate;o=0.08;a=0.4;t=0.6;d=0.6
+		Marked ballot stuffing;OR
+			 Insert ballots during envelope separation;o=0.07;a=0.8;t=0.6;d=0.4
+			 Insert ballots during counting;o=0.06;a=0.8;t=0.6;d=0.8
+			 Insert ballots during recount;o=0.06;a=0.8;t=0.6;d=0.8
+			 Insert ballots during audit;o=0.07;a=0.8;t=0.6;d=0.4
+		Manipulate or discard votable ballot;OR
+			Delete at local elections office;OR
+				 Fail to stuff envelope;o=0.11;a=0.8;t=0.2;d=0.6
+				 Send wrong or pre marked ballot;o=0.06;a=0.8;t=0.8;d=0.6
+				 Mis-address envelope;o=0.06;a=0.6;t=0.8;d=0.6
+				 Destroy prepared envelope;o=0.08;a=0.8;t=0.4;d=0.4
+				 Destroy batch of prepared envelopes;o=0.07;a=0.8;t=0.8;d=0.4
+				 Manipulate return envelope;o=0.06;a=0.8;t=0.6;d=0.6
+			Delay delivery past deadline;OR
+				 Election process delay;o=0.08;a=0.6;t=0.4;d=0.6
+				 Handling delay;o=0.06;a=0.8;t=0.6;d=0.8
+				 Delay in the mail;o=0.07;a=0.8;t=0.6;d=0.4
+			Delete at destination;OR
+				 Lost in destination mailroom;o=0.13;a=0.4;t=0.4;d=0.2
+				 Mailbox attack;o=0.08;a=0.8;t=0.4;d=0.4
+		Suppress voter turnout;OR
+			 Misallocate polling or drop box locations;o=0.07;a=0.8;t=0.4;d=0.8
+			 Provide regional mail-in voting misinformation;o=0.06;a=0.8;t=0.8;d=0.6
+			 Hinder or suppress regional postal services;o=0.06;a=0.8;t=0.6;d=0.8
+			 System Outage;o=0.08;a=0.6;t=0.4;d=0.6
+			 Name deliberately misspelled on ballot;o=0.06;a=0.6;t=0.6;d=1.0
+		Digital Attack;OR
+			 Paper ballot scanner hacked;o=0.06;a=0.8;t=0.6;d=0.6
+			 Vote denied or altered;o=0.07;a=0.8;t=0.6;d=0.4
+	Masquerade attack;OR
+		Deceased voters;AND
+			 Identify target deceased voters;o=0.05;a=0.8;t=1.0;d=0.8
+			 Register the to an accessible address;o=0.06;a=0.8;t=0.8;d=0.6
+			 Receive, mark, return their ballot;o=0.07;a=1.0;t=0.4;d=0.6
+			 Defeat signature check;o=0.12;a=0.8;t=0.4;d=0.2
+		 Family members;o=0.08;a=1.0;t=0.4;d=0.4
+		Central housing;AND
+			 Identify target residents;o=0.06;a=0.8;t=0.6;d=0.6
+			 Register them;o=0.07;a=0.8;t=0.4;d=0.6
+			 Intercept, mark, and return their ballot;o=0.06;a=0.8;t=0.8;d=0.6
+			Defeat Signature check;OR
+				 Register as the voter;o=0.06;a=0.8;t=0.8;d=0.6
+				 Forge the signature;o=0.12;a=0.8;t=0.2;d=0.4
+		Mailbox attack;AND
+			 Identify target;o=0.07;a=0.8;t=0.4;d=0.8
+			 Steal blank ballot from mailbox;o=0.06;a=0.8;t=0.8;d=0.6
+			 Receive, mark, return their ballots;o=0.08;a=1.0;t=0.4;d=0.4
+			Defeat signature check;OR
+				 Register as the voter;o=0.06;a=1.0;t=0.6;d=0.6
+				 Forge the signature;o=0.06;a=0.8;t=0.8;d=0.6
+		 Malicious “messenger ballots”;o=0.1;a=0.8;t=0.8;d=0.2
+		Drop box attack;OR
+			Steal/manipulate ballots in drop box;AND
+				 Identify target;o=0.07;a=0.8;t=0.4;d=0.8
+				 Acquire access to drop box;o=0.07;a=0.8;t=0.8;d=0.4
+				 Alter marks and return their ballots;o=0.07;a=0.8;t=0.8;d=0.4
+			 Destroy drop box;o=0.05;a=1.0;t=0.8;d=0.8
+		Ballot storage attack;OR
+			Manipulate ballots in storage;AND
+				 Gain exclusive access to ballot storage;o=0.07;a=0.8;t=0.6;d=0.4
+				 Alter marks and return to storage;o=0.07;a=0.8;t=0.8;d=0.4
+			Steal/destroy ballots in storage;AND
+				 Gain exclusive access to ballot storage;o=0.07;a=0.8;t=0.6;d=0.4
+				 Steal/destroy ballots;o=0.06;a=0.8;t=0.8;d=0.6
+		Caregivers;AND
+			 Steal blank ballot from mailbox;o=0.06;a=0.8;t=0.8;d=0.6
+			 Mark and return their ballot;o=0.07;a=1.0;t=0.4;d=0.6
+			 Defeat signature check;o=0.12;a=0.8;t=0.4;d=0.2
+	Voting process attacks;OR
+		Vote buying;OR
+			 Bookie model;o=0.07;a=0.8;t=0.8;d=0.4
+			Internet vote buying attack;AND
+				Attract voters;OR
+					 Attract voters with internet adds;o=0.08;a=0.8;t=0.4;d=0.4
+					 Identify prospective vote sellers from voter rolls;o=0.07;a=0.8;t=0.6;d=0.4
+				 Receive, mark, return their ballot;o=0.07;a=0.8;t=0.4;d=0.6
+				 Pay the voters via the internet;o=0.08;a=0.8;t=0.4;d=0.4
+			 Pay voters not to vote;o=0.08;a=0.8;t=0.4;d=0.4
+		Organizer coercion attack;OR
+			 Attribution threats;o=0.06;a=0.8;t=0.8;d=0.6
+			 Debate and vote parties;o=0.12;a=0.8;t=0.2;d=0.4
+		 Employer coercion attack;o=0.08;a=0.6;t=0.6;d=0.4
+		 Family member coercion attack;o=0.08;a=0.8;t=0.4;d=0.4
+		 Distribute false ballots;o=0.05;a=1.0;t=0.8;d=0.8
+		Digital Attack;AND
+			 Paper ballot scanner hacked;o=0.06;a=0.8;t=0.6;d=0.6
+			 Vote denied or altered;o=0.07;a=0.8;t=0.6;d=0.4
+		 Invalid identification card attack;o=0.06;a=0.8;t=0.4;d=1.0
+	Errors in voting system processes;OR
+		Voter administrative error;OR
+			 Failure to sign correctly;o=0.13;a=0.4;t=0.2;d=0.4
+			 Signature mismatch;o=0.07;a=0.8;t=0.4;d=0.6
+			 Failure to bundle correctly;o=0.11;a=0.4;t=0.2;d=1.0
+			 Failure to meet time requirements;o=0.06;a=0.8;t=0.6;d=0.8
+			 Confusion with federal write-in absentee ballot (overseas vote);o=0.09;a=0.6;t=0.4;d=0.4
+		Voter selection error;OR
+			 Human error mismark;o=0.07;a=0.6;t=0.4;d=0.8
+			Ballot design flaw;AND
+				 Error in instructions;o=0.06;a=0.8;t=0.6;d=0.6
+				 Unclear assistance instructions when you don’t require one;o=0.07;a=0.6;t=0.6;d=0.6
+				 Ballot says ID required when you don’t require one;o=0.09;a=0.4;t=0.4;d=0.6
+			 Expired voter ID;o=0.07;a=0.6;t=0.4;d=0.8
+			 Correction mistake;o=0.09;a=0.6;t=0.4;d=0.4
+			 Candidate name confusion;o=0.09;a=0.6;t=0.4;d=0.4

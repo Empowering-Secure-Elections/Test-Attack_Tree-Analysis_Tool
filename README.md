@@ -31,6 +31,16 @@ In the project directory, you can run:
 
 ### `npm run dev`
 
+#### Required Software
+Node.js (from https://nodejs.org/en)
+
+##### Required Node Packages
+- `npm install -g concurrent`
+- `npm install --global cross-env`
+- `npm install -g wait-on`
+- `npm install react-scripts@latest`
+- `npm install react`
+
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
@@ -52,14 +62,20 @@ The app is minified and the filenames include the hashes.
 #### How to build windows binaries under 'mcr.microsoft.com/windows:20H2' docker image
 
 - Dependencies:
-  - Install node 16 (from https://nodejs.org/download/release/v16.20.0/node-v16.20.0-x64.msi )
-    `curl -O https://nodejs.org/download/release/v16.20.0/node-v16.20.0-x64.msi
+  - Install node 16 (from https://nodejs.org/download/release/v16.20.0/node-v16.20.0-x64.msi)
+    - `curl -O https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi
      start /wait msiexec /i node-v16.20.0-x64.msi /qn`
   - Install git (from https://git-scm.com/download/win )
-    `curl -O https://github.com/git-for-windows/git/releases/download/v2.40.1.windows.1/Git-2.40.1-64-bit.exe
+    - `curl -O https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/Git-2.44.0-64-bit.exe
      start /wait Git-2.40.1-64-bit.exe /SILENT`
 - `npm install`
 - `npm run make`
 
-
-test
+## Required Software
+Node.js (from https://nodejs.org/en)
+#### Node Packages
+- `npm install -g concurrent`
+- `npm install --global cross-env`
+- `npm install -g wait-on`
+- `npm install react-scripts@latest`
+- `npm install react`
