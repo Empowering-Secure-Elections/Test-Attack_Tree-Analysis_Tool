@@ -5,6 +5,7 @@ import AND_RED from "../assets/AND_RED.png";
 import OR from "../assets/OR.png";
 import OR_RED from "../assets/OR_RED.png";
 
+
 const nodeSize = { x: 100, y: 150 };
 
 const foreignObjectProps = {
@@ -207,7 +208,9 @@ class D3Tree extends React.Component {
         default:
           return this.renderHighlightedLeaf(nodeDatum, toggleNode);
       }
-    } else {
+    } 
+    //render non-highlighted nodes
+    else {
       switch (nodeDatum["operator"]) {
         case "OR":
           return this.renderOrNode(nodeDatum, toggleNode, foreignObjectProps);

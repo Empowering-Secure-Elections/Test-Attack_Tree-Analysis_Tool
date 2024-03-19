@@ -19,7 +19,6 @@
     "@testing-library/user-event": "^12.8.3",
     "antd": "^4.16.13",
     "codemirror": "^5.64.0",
-    "concurrently": "^6.3.0",
     "cross-env": "^7.0.3",
     "electron": "^15.1.2",
     "electron-is-dev": "^2.0.0",
@@ -61,7 +60,7 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.63",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
     "@electron-forge/maker-zip": "^6.0.0-beta.63",
-    "concurrently": "^6.3.0",
+    "concurrently": "^6.5.1",
     "electron": "^15.1.2",
     "electron-is-dev": "^2.0.0",
     "wait-on": "^6.0.0"
