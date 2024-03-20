@@ -14,11 +14,13 @@ import {
   DesktopOutlined,
   DownloadOutlined,
   FileOutlined,
+  FileImageOutlined
 } from "@ant-design/icons";
 import UIController from "../controllers/UIController";
 import { getByTestId } from "@testing-library/dom";
 import D3Tree from "./D3Tree";
 import RecommendationBox from "./RecommendationBox";
+import {SVG} from '@svgdotjs/svg.js'
 
 const uiController = new UIController();
 
@@ -63,6 +65,25 @@ class MenuBar extends Component {
       type: "text/plain;charset=utf-8",
     });
     saveAs(blob, "Report.html");
+  }
+
+  //creating a graphic for exporting to the saved file
+  creategraphic(){
+    return(
+    <D3Tree
+      key="og"
+      data={this.props.originalTree ? this.props.originalTree : {}}
+      reportGen={true}
+      translate={this.state.translate}
+    ></D3Tree>
+    );
+  }
+
+  //save the graphic
+  handleSvgSave(){
+    const svgContent = ReactDOMServer.renderToStaticMarkup(this.creategraphic());
+    const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
+    saveAs(blob, "Attack__Tree.svg");
   }
 
   toggleOpened = () => {
@@ -248,6 +269,9 @@ class MenuBar extends Component {
             </Menu.Item>
             <Menu.Item key="setting:3" icon={<DownloadOutlined />}>
               Export DSL
+            </Menu.Item>
+            <Menu.Item key="setting:5" icon={<FileImageOutlined />}>
+              <Button onClick={this.handleSvgSave.bind(this)}>Export SVG</Button>
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">
