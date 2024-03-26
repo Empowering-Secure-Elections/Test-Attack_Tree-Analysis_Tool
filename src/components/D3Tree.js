@@ -17,28 +17,41 @@ const foreignObjectProps = {
 
 class D3Tree extends React.Component {
   renderHighlightedLeaf(nodeDatum, toggleNode) {
+    const textWidth = nodeDatum.name.length * 1.5; // Adjust the factor as needed for desired width
+    const boxWidth = textWidth + 35 ; // Add padding
+    const boxHeight = 90; // Set a fixed height or adjust as needed
     return (
       <g>
-        <rect width="20" height="20" x="-10" onClick={toggleNode} fill="red" />
-        <text fill="black" strokeWidth="1" x="20">
-          {nodeDatum.name}
-        </text>
+        <foreignObject width={boxWidth} height={boxHeight} x={-boxWidth / 2} y={-boxHeight / 50} onClick={toggleNode}>
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", border: "1px solid red" }}>
+            {nodeDatum.name}
+          </div>
+        </foreignObject>
       </g>
     );
   }
 
   renderLeaf(nodeDatum, toggleNode) {
+    const textWidth = nodeDatum.name.length * 1.5; // Adjust the factor as needed for desired width
+    const boxWidth = textWidth + 35 ; // Add padding
+    const boxHeight = 90; // Set a fixed height or adjust as needed
+  
     return (
       <g>
-        <rect width="20" height="20" x="-10" onClick={toggleNode} />
-        <text fill="black" strokeWidth="1" x="20">
-          {nodeDatum.name}
-        </text>
+        <foreignObject width={boxWidth} height={boxHeight} x={-boxWidth / 2} y={-boxHeight / 50} onClick={toggleNode}>
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", border: "1px solid black" }}>
+            {nodeDatum.name}
+          </div>
+        </foreignObject>
       </g>
     );
   }
+  
 
   renderHighlightedOrNode(nodeDatum, toggleNode, foreignObjectProps) {
+    const textWidth = nodeDatum.name.length * 10; // Adjust the factor as needed for desired width
+    const boxWidth = textWidth + 20 ; // Add padding
+    const boxHeight = 50; // Set a fixed height or adjust as needed
     return (
       <g onClick={toggleNode}>
         <foreignObject {...foreignObjectProps}>
@@ -63,9 +76,19 @@ class D3Tree extends React.Component {
               style={{
                 textAlign: "center",
                 marginTop: 55,
+                marginLeft: 5,
                 fontWeight: "bold",
                 zIndex: 12,
                 backgroundColor: "#f0f2f5",
+                width: boxWidth,
+                height: boxHeight,
+                backgroundColor: "#f0f2f5",
+                border: "1px solid red",
+                borderRadius: "5px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative"
               }}
             >
               {nodeDatum.name}
@@ -77,6 +100,10 @@ class D3Tree extends React.Component {
   }
 
   renderOrNode(nodeDatum, toggleNode, foreignObjectProps) {
+    const textWidth = nodeDatum.name.length * 10; // Adjust the factor as needed for desired width
+    const boxWidth = textWidth + 20 ; // Add padding
+    const boxHeight = 50; // Set a fixed height or adjust as needed
+
     return (
       <g onClick={toggleNode}>
         <foreignObject {...foreignObjectProps}>
@@ -101,9 +128,19 @@ class D3Tree extends React.Component {
               style={{
                 textAlign: "center",
                 marginTop: 55,
+                marginLeft: 5,
                 fontWeight: "bold",
                 zIndex: 12,
                 backgroundColor: "#f0f2f5",
+                width: boxWidth,
+                height: boxHeight,
+                backgroundColor: "#f0f2f5",
+                border: "1px solid black",
+                borderRadius: "5px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative"
               }}
             >
               {nodeDatum.name}
@@ -115,6 +152,9 @@ class D3Tree extends React.Component {
   }
 
   renderHighlightedAndNode(nodeDatum, toggleNode, foreignObjectProps) {
+    const textWidth = nodeDatum.name.length * 10; // Adjust the factor as needed for desired width
+    const boxWidth = textWidth + 20 ; // Add padding
+    const boxHeight = 50; // Set a fixed height or adjust as needed
     return (
       <g onClick={toggleNode}>
         <foreignObject {...foreignObjectProps}>
@@ -142,6 +182,15 @@ class D3Tree extends React.Component {
                 fontWeight: "bold",
                 zIndex: 11,
                 backgroundColor: "#f0f2f5",
+                width: boxWidth,
+                height: boxHeight,
+                backgroundColor: "#f0f2f5",
+                border: "1px solid red",
+                borderRadius: "5px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative"
               }}
             >
               {nodeDatum.name}
@@ -153,6 +202,9 @@ class D3Tree extends React.Component {
   }
 
   renderAndNode(nodeDatum, toggleNode, foreignObjectProps) {
+    const textWidth = nodeDatum.name.length * 5; // Adjust the factor as needed for desired width
+    const boxWidth = textWidth + 10 ; // Add padding
+    const boxHeight = 50; // Set a fixed height or adjust as needed
     return (
       <g onClick={toggleNode}>
         <foreignObject {...foreignObjectProps}>
@@ -168,7 +220,7 @@ class D3Tree extends React.Component {
                 height: 50,
                 position: "absolute",
                 zIndex: 10,
-                top: 5,
+                top: 4,
                 left: 25,
                 backgroundColor: "#f0f2f5",
               }}
@@ -177,9 +229,19 @@ class D3Tree extends React.Component {
               style={{
                 textAlign: "center",
                 marginTop: 55,
+                marginLeft: 5,
                 fontWeight: "bold",
                 zIndex: 12,
                 backgroundColor: "#f0f2f5",
+                width: boxWidth,
+                height: boxHeight,
+                backgroundColor: "#f0f2f5",
+                border: "1px solid black",
+                borderRadius: "5px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative"
               }}
             >
               {nodeDatum.name}
@@ -223,11 +285,33 @@ class D3Tree extends React.Component {
   };
 
   getDynamicPathClass = ({ source, target }, orientation) => {
-    if (target["data"]["highlight"]) {
+    if (target.data.highlight) {
       // Target node has no children -> this link leads to a leaf node.
       return "highlight_link";
     } else {
-      return "default_link";
+      // Calculate adjustment for line length
+      const adjustment = 20; // You can adjust this value as needed
+  
+      // Calculate new coordinates for the source and target based on the orientation
+      let newX = target.x;
+      let newY = target.y;
+  
+      if (orientation === "horizontal") {
+        if (target.x > source.x) {
+          newX -= adjustment;
+        } else {
+          newX += adjustment;
+        }
+      } else {
+        if (target.y > source.y) {
+          newY -= adjustment;
+        } else {
+          newY += adjustment;
+        }
+      }
+  
+      // Return class and adjusted coordinates
+      return `default_link_${orientation}_${source.data.operator}_${target.data.operator}_${target.data.highlight ? "highlight" : "regular"}_${source.depth}_${target.depth}`;
     }
   };
   render() {
