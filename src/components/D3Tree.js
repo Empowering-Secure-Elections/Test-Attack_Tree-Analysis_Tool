@@ -6,11 +6,11 @@ import OR from "../assets/OR.png";
 import OR_RED from "../assets/OR_RED.png";
 
 
-const nodeSize = { x: 100, y: 150 };
+const nodeSize = { x: 275, y: 150 };
 
 const foreignObjectProps = {
-  width: nodeSize.x,
-  height: nodeSize.y - 40,
+  width: nodeSize.x ,
+  height: nodeSize.y,
   x: -50,
   y: -55,
 };
@@ -38,8 +38,19 @@ class D3Tree extends React.Component {
   
     return (
       <g>
-        <foreignObject width={boxWidth} height={boxHeight} x={-boxWidth / 2} y={-boxHeight / 50} onClick={toggleNode}>
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", border: "1px solid black" }}>
+        <foreignObject width={boxWidth} 
+        height={boxHeight} 
+        x={-boxWidth / 2} 
+        y={-boxHeight / 50} 
+        onClick={toggleNode}>
+          <div style={{ 
+            width: "100%", 
+            height: "100%", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center", 
+            textAlign: "center", 
+            border: "1px solid black" }}>
             {nodeDatum.name}
           </div>
         </foreignObject>
@@ -100,9 +111,10 @@ class D3Tree extends React.Component {
   }
 
   renderOrNode(nodeDatum, toggleNode, foreignObjectProps) {
-    const textWidth = nodeDatum.name.length * 10; // Adjust the factor as needed for desired width
-    const boxWidth = textWidth + 20 ; // Add padding
+    const textWidth = nodeDatum.name.length * 5; // Adjust the factor as needed for desired width
+    const boxWidth = textWidth + 25; // Add padding
     const boxHeight = 50; // Set a fixed height or adjust as needed
+    
 
     return (
       <g onClick={toggleNode}>
@@ -128,9 +140,9 @@ class D3Tree extends React.Component {
               style={{
                 textAlign: "center",
                 marginTop: 55,
-                marginLeft: 5,
+                marginLeft: 0,
                 fontWeight: "bold",
-                zIndex: 12,
+                zIndex: 10,
                 backgroundColor: "#f0f2f5",
                 width: boxWidth,
                 height: boxHeight,
@@ -203,7 +215,7 @@ class D3Tree extends React.Component {
 
   renderAndNode(nodeDatum, toggleNode, foreignObjectProps) {
     const textWidth = nodeDatum.name.length * 5; // Adjust the factor as needed for desired width
-    const boxWidth = textWidth + 10 ; // Add padding
+    const boxWidth = textWidth + 25 ; // Add padding
     const boxHeight = 50; // Set a fixed height or adjust as needed
     return (
       <g onClick={toggleNode}>
