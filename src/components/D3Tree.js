@@ -77,7 +77,7 @@ class D3Tree extends React.Component {
               style={{
                 height: 50,
                 position: "absolute",
-                zIndex: 10,
+                zIndex: 1,
                 top: 5,
                 left: 27,
                 backgroundColor: "#f0f2f5",
@@ -130,7 +130,7 @@ class D3Tree extends React.Component {
               style={{
                 height: 50,
                 position: "absolute",
-                zIndex: 10,
+                zIndex: 1,
                 top: 5,
                 left: 27,
                 backgroundColor: "#f0f2f5",
@@ -181,7 +181,7 @@ class D3Tree extends React.Component {
               style={{
                 height: 50,
                 position: "absolute",
-                zIndex: 10,
+                zIndex: 1,
                 top: 5,
                 left: 25,
                 backgroundColor: "#f0f2f5",
@@ -231,7 +231,7 @@ class D3Tree extends React.Component {
               style={{
                 height: 50,
                 position: "absolute",
-                zIndex: 10,
+                zIndex: 1,
                 top: 4,
                 left: 25,
                 backgroundColor: "#f0f2f5",
