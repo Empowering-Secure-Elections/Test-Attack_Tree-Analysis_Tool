@@ -32,8 +32,8 @@ class D3Tree extends React.Component {
   }
 
   renderLeaf(nodeDatum, toggleNode) {
-    const textWidth = nodeDatum.name.length * 1.5; // Adjust the factor as needed for desired width
-    const boxWidth = textWidth + 35 ; // Add padding
+    const textWidth = nodeDatum.name.length * 2; // Adjust the factor as needed for desired width
+    const boxWidth = textWidth + 50 ; // Add padding
     const boxHeight = 90; // Set a fixed height or adjust as needed
   
     return (
@@ -89,7 +89,7 @@ class D3Tree extends React.Component {
                 marginTop: 55,
                 marginLeft: 5,
                 fontWeight: "bold",
-                zIndex: 12,
+                zIndex: 1,
                 backgroundColor: "#f0f2f5",
                 width: boxWidth,
                 height: boxHeight,
@@ -142,7 +142,7 @@ class D3Tree extends React.Component {
                 marginTop: 55,
                 marginLeft: 0,
                 fontWeight: "bold",
-                zIndex: 10,
+                zIndex: 1,
                 backgroundColor: "#f0f2f5",
                 width: boxWidth,
                 height: boxHeight,
@@ -192,7 +192,7 @@ class D3Tree extends React.Component {
                 textAlign: "center",
                 marginTop: 55,
                 fontWeight: "bold",
-                zIndex: 11,
+                zIndex: 1,
                 backgroundColor: "#f0f2f5",
                 width: boxWidth,
                 height: boxHeight,
@@ -243,7 +243,7 @@ class D3Tree extends React.Component {
                 marginTop: 55,
                 marginLeft: 5,
                 fontWeight: "bold",
-                zIndex: 12,
+                zIndex: 1,
                 backgroundColor: "#f0f2f5",
                 width: boxWidth,
                 height: boxHeight,
