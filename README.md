@@ -79,3 +79,13 @@ Node.js (from https://nodejs.org/en)
 - `npm install -g wait-on`
 - `npm install react-scripts@latest`
 - `npm install react`
+
+
+### Feature Goals
+- [ ] Export Graphic of full tree
+- [ ] Export graphic of specific scenarios
+- [ ] Improve input interface
+  - [ ] Dynamic adjustable space for entering inputs
+- [ ] Make tree branch lengths adjust to fit around size of leaves
+- [ ] Makes leaves centered
+- [ ] Dynamic add leaves in tree
