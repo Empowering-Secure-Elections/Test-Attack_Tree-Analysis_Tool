@@ -89,3 +89,7 @@ Node.js (from https://nodejs.org/en)
 - [ ] Make tree branch lengths adjust to fit around size of leaves
 - [ ] Makes leaves centered
 - [ ] Dynamic add leaves in tree
+- [ ] Temporal Flags for leaves to differentiate scenarios
+- [ ] User defined metrics
+  - [ ] UI for user defined metrics
+  - [ ] Information explaining how scenario metrics are calculated 
