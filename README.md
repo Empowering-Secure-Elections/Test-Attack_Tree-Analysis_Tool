@@ -29,7 +29,7 @@ AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop 
 
 In the project directory, you can run:
 
-### `npm run dev'
+### `npm run dev`
 
 #### Required Software
 Node.js (from https://nodejs.org/en)
@@ -93,4 +93,3 @@ Node.js (from https://nodejs.org/en)
 - [ ] User defined metrics
   - [ ] UI for user defined metrics
   - [ ] Information explaining how scenario metrics are calculated 
-
