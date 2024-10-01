@@ -143,9 +143,9 @@ class App extends React.Component {
     this.instance.setSize(
       350,
       window.innerHeight -
-        document.getElementById("generateButtonDiv").scrollHeight -
-        document.getElementsByClassName("ant-tabs")[0].clientHeight -
-        document.getElementsByClassName("ant-menu")[0].scrollHeight
+      document.getElementById("generateButtonDiv").scrollHeight -
+      document.getElementsByClassName("ant-tabs")[0].clientHeight -
+      document.getElementsByClassName("ant-menu")[0].scrollHeight
     );
 
     // Check if recommendation box present before getting the style.
@@ -173,9 +173,9 @@ class App extends React.Component {
     this.instance.setSize(
       350,
       window.innerHeight -
-        document.getElementById("generateButtonDiv").scrollHeight -
-        document.getElementsByClassName("ant-tabs")[0].clientHeight -
-        document.getElementsByClassName("ant-menu")[0].scrollHeight
+      document.getElementById("generateButtonDiv").scrollHeight -
+      document.getElementsByClassName("ant-tabs")[0].clientHeight -
+      document.getElementsByClassName("ant-menu")[0].scrollHeight
     );
   };
 
@@ -402,19 +402,21 @@ class App extends React.Component {
           ))}
         </Tabs>
         <Layout>
-          <Sider width={350} id="code_sider">
-            <CodeMirror
-              editorDidMount={(editor) => {
-                this.instance = editor;
-              }}
-              options={{
-                mode: null,
-                lineNumbers: true,
-                indentWithTabs: true,
-                viewportMargin: 20,
-                indentUnit: 4,
-              }}
-            />
+          <Sider width={600} id="code_sider" style={{ height: "100vh" }}> {/* Set height to 100vh */}
+            <div className="resizable">
+              <CodeMirror
+                editorDidMount={(editor) => {
+                  this.instance = editor;
+                }}
+                options={{
+                  mode: null,
+                  lineNumbers: true,
+                  indentWithTabs: true,
+                  viewportMargin: 20,
+                  indentUnit: 4,
+                }}
+              />
+            </div>
             <div
               id="generateButtonDiv"
               style={{
