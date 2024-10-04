@@ -40,25 +40,18 @@
 
 /* Updates for resizable feature */
 .resizable {
-  resize: horizontal; /* Allow horizontal resizing */
-  overflow: auto; /* Add scrollbars */
-  min-width: 350px; 
+  min-width: 500px; 
   max-width: 100%;
-  height: calc(100% - 50px);
-  padding: 0;
-  box-sizing: border-box; 
 }
 
-/* Ensure CodeMirror fills the container */
-.CodeMirror {
+/* CodeMirror scroller */
+.CodeMirror-scroll {
   height: 100%;
   width: 100%;
-  background-color: transparent;
-  color: #fff; 
-  border: none; 
+  overflow: auto;
 }
 
-/* Style for the button area */
+/* Modified style for the button area */
 #generateButtonDiv {
   padding: 10px 0;
   background-color: #282c34;

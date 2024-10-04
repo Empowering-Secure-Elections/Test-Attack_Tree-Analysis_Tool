@@ -141,7 +141,7 @@ class App extends React.Component {
     console.log(document.getElementById("tree").offsetWidth.toString() + "px");
     console.log(document.getElementsByClassName("ant-menu")[0]);
     this.instance.setSize(
-      350,
+      450, // modified from 350 to 450
       window.innerHeight -
       document.getElementById("generateButtonDiv").scrollHeight -
       document.getElementsByClassName("ant-tabs")[0].clientHeight -
@@ -171,7 +171,7 @@ class App extends React.Component {
         "px";
     }
     this.instance.setSize(
-      350,
+      450, // modified from 350 to 450
       window.innerHeight -
       document.getElementById("generateButtonDiv").scrollHeight -
       document.getElementsByClassName("ant-tabs")[0].clientHeight -
@@ -402,7 +402,7 @@ class App extends React.Component {
           ))}
         </Tabs>
         <Layout>
-          <Sider width={600} id="code_sider" style={{ height: "100vh" }}> {/* Set height to 100vh */}
+          <Sider width={450} id="code_sider">
             <div className="resizable">
               <CodeMirror
                 editorDidMount={(editor) => {
