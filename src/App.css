@@ -41,26 +41,25 @@
 /* Updates for resizable feature */
 .resizable {
   resize: horizontal; /* Allow horizontal resizing */
-  overflow: auto; /* Add scrollbars if necessary */
-  min-width: 350px; /* Set a minimum width */
-  max-width: 100%; /* Prevent it from overflowing its parent */
-  height: calc(100% - 50px); /* Take full height minus button area */
-  padding: 0; /* Remove padding for background fill */
-  box-sizing: border-box; /* Include padding in width/height calculations */
-  /* background-color: #f0f0f0; Set background color to match your design */
+  overflow: auto; /* Add scrollbars */
+  min-width: 350px; 
+  max-width: 100%;
+  height: calc(100% - 50px);
+  padding: 0;
+  box-sizing: border-box; 
 }
 
 /* Ensure CodeMirror fills the container */
 .CodeMirror {
-  height: 100%; /* Full height of its parent */
-  width: 100%; /* Full width of its parent */
-  background-color: transparent; /* Make background transparent to see parent color */
-  color: #fff; /* Change text color if needed */
-  border: none; /* Remove border if desired */
+  height: 100%;
+  width: 100%;
+  background-color: transparent;
+  color: #fff; 
+  border: none; 
 }
 
 /* Style for the button area */
 #generateButtonDiv {
-  padding: 10px 0; /* Add some vertical padding */
-  background-color: #282c34; /* Match this to the parent background */
+  padding: 10px 0;
+  background-color: #282c34;
 }
