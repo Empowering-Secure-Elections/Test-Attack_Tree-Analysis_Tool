@@ -68,7 +68,7 @@ class D3Tree extends React.Component {
         <foreignObject {...foreignObjectProps}>
           <div
             style={{
-              backgroundColor: "#f0f2f5",
+              backgroundColor: "transparent", // modifying color
             }}
           >
             <img
@@ -121,7 +121,7 @@ class D3Tree extends React.Component {
         <foreignObject {...foreignObjectProps}>
           <div
             style={{
-              backgroundColor: "#f0f2f5",
+              backgroundColor: "transparent", // modifying color
             }}
           >
             <img
@@ -172,7 +172,7 @@ class D3Tree extends React.Component {
         <foreignObject {...foreignObjectProps}>
           <div
             style={{
-              backgroundColor: "#f0f2f5",
+              backgroundColor: "transparent", // modifying color
             }}
           >
             <img
@@ -222,7 +222,7 @@ class D3Tree extends React.Component {
         <foreignObject {...foreignObjectProps}>
           <div
             style={{
-              backgroundColor: "#f0f2f5",
+              backgroundColor: "transparent", // modifying color
             }}
           >
             <img
