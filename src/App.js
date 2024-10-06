@@ -38,18 +38,22 @@ const columns = [
       {
         title: "O",
         dataIndex: "o",
+        sorter: (a, b) => a.o - b.o, // Sort by 'O' value
       },
       {
         title: "A",
         dataIndex: "a",
+        sorter: (a, b) => a.a - b.a, // Sort by 'A' value
       },
       {
         title: "T",
         dataIndex: "t",
+        sorter: (a, b) => a.t - b.t, // Sort by 'T' value
       },
       {
         title: "D",
         dataIndex: "d",
+        sorter: (a, b) => a.d - b.d, // Sort by 'D' value
       },
     ],
   },
