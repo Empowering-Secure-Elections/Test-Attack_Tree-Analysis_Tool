@@ -37,3 +37,22 @@
     transform: rotate(360deg);
   }
 }
+
+/* Updates for resizable feature */
+.resizable {
+  min-width: 500px; 
+  max-width: 100%;
+}
+
+/* CodeMirror scroller */
+.CodeMirror-scroll {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+/* Modified style for the button area */
+#generateButtonDiv {
+  padding: 10px 0;
+  background-color: #282c34;
+}
