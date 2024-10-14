@@ -40,18 +40,22 @@ const columns = [
       {
         title: "O",
         dataIndex: "o",
+        sorter: (a, b) => a.o - b.o, // Sort by 'O' value
       },
       {
         title: "A",
         dataIndex: "a",
+        sorter: (a, b) => a.a - b.a, // Sort by 'A' value
       },
       {
         title: "T",
         dataIndex: "t",
+        sorter: (a, b) => a.t - b.t, // Sort by 'T' value
       },
       {
         title: "D",
         dataIndex: "d",
+        sorter: (a, b) => a.d - b.d, // Sort by 'D' value
       },
     ],
   },
@@ -143,11 +147,11 @@ class App extends React.Component {
     console.log(document.getElementById("tree").offsetWidth.toString() + "px");
     console.log(document.getElementsByClassName("ant-menu")[0]);
     this.instance.setSize(
-      350,
+      450, // modified from 350 to 450
       window.innerHeight -
-        document.getElementById("generateButtonDiv").scrollHeight -
-        document.getElementsByClassName("ant-tabs")[0].clientHeight -
-        document.getElementsByClassName("ant-menu")[0].scrollHeight
+      document.getElementById("generateButtonDiv").scrollHeight -
+      document.getElementsByClassName("ant-tabs")[0].clientHeight -
+      document.getElementsByClassName("ant-menu")[0].scrollHeight
     );
 
     // Check if recommendation box present before getting the style.
@@ -173,11 +177,11 @@ class App extends React.Component {
         "px";
     }
     this.instance.setSize(
-      350,
+      450, // modified from 350 to 450
       window.innerHeight -
-        document.getElementById("generateButtonDiv").scrollHeight -
-        document.getElementsByClassName("ant-tabs")[0].clientHeight -
-        document.getElementsByClassName("ant-menu")[0].scrollHeight
+      document.getElementById("generateButtonDiv").scrollHeight -
+      document.getElementsByClassName("ant-tabs")[0].clientHeight -
+      document.getElementsByClassName("ant-menu")[0].scrollHeight
     );
   };
 
@@ -412,19 +416,21 @@ class App extends React.Component {
           ))}
         </Tabs>
         <Layout>
-          <Sider width={350} id="code_sider">
-            <CodeMirror
-              editorDidMount={(editor) => {
-                this.instance = editor;
-              }}
-              options={{
-                mode: null,
-                lineNumbers: true,
-                indentWithTabs: true,
-                viewportMargin: 20,
-                indentUnit: 4,
-              }}
-            />
+          <Sider width={450} id="code_sider">
+            <div className="resizable">
+              <CodeMirror
+                editorDidMount={(editor) => {
+                  this.instance = editor;
+                }}
+                options={{
+                  mode: null,
+                  lineNumbers: true,
+                  indentWithTabs: true,
+                  viewportMargin: 20,
+                  indentUnit: 4,
+                }}
+              />
+            </div>
             <div
               id="generateButtonDiv"
               style={{
