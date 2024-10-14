@@ -15,6 +15,7 @@ import MenuBar from "./components/MenuBar";
 import RecommendationBox from "./components/RecommendationBox";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 import "codemirror/lib/codemirror.css";
+import TreeAnalyzerController from "./controllers/TreeAnalyzerController";
 
 // Attack tree metrics will include likelihood (L), victim impact (V),
 // resource points (R), and time (T).
@@ -25,6 +26,7 @@ const { TabPane } = Tabs;
 const { Sider, Content, Footer } = Layout;
 const { Title } = Typography;
 const uiController = new UIController();
+const treeAnalyzerController = new TreeAnalyzerController();
 // Constant columns for displaying scenarios.
 const columns = [
   {
@@ -375,6 +377,14 @@ class App extends React.Component {
     });
   };
 
+  handleExportClick = () => {
+    if (this.state.scenarioData.length > 0) {
+      treeAnalyzerController.exportScenariosToFile(this.state.scenarioData);
+    } else {
+      console.log("No scenarios available for export");
+    }
+  };
+
   render() {
     const { panes, activeKey } = this.state;
     if (this.instance != null) {
@@ -425,6 +435,7 @@ class App extends React.Component {
             >
               <Button onClick={this.generate}>Generate</Button>
               <Button onClick={this.showDrawer}>Show Scenarios</Button>
+              <Button onClick={this.handleExportClick}>Export Scenarios</Button>
             </div>
           </Sider>
           <Layout>
