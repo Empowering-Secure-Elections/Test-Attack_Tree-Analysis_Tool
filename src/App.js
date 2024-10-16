@@ -15,7 +15,6 @@ import MenuBar from "./components/MenuBar";
 import RecommendationBox from "./components/RecommendationBox";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 import "codemirror/lib/codemirror.css";
-import TreeAnalyzerController from "./controllers/TreeAnalyzerController";
 
 // Attack tree metrics will include likelihood (L), victim impact (V),
 // resource points (R), and time (T).
@@ -26,7 +25,6 @@ const { TabPane } = Tabs;
 const { Sider, Content, Footer } = Layout;
 const { Title } = Typography;
 const uiController = new UIController();
-const treeAnalyzerController = new TreeAnalyzerController();
 // Constant columns for displaying scenarios.
 const columns = [
   {
@@ -352,6 +350,29 @@ class App extends React.Component {
     saveAs(blob, "DSL.txt");
   }
 
+  /**
+  * Exports the scenarios of a tree.
+  * The first column is the scenario number, 
+  * the second column is the value of the overall occurance of that scenario (up to 10 decimal places), 
+  * the third column is the path of nodes the scenario takes.
+  */
+  exportScenarios = () => {
+    // Checks to see if there is at least one scenario to export
+    if (this.state.scenarioData[0]) {
+      const fileContent = this.state.scenarioData.map((scenario) => {
+        const path = scenario.namepath.join(" -> "); // Use "->" for path
+        return `${scenario.name}\t${scenario.o}\t${path}`;
+      }).join("\n");
+  
+      var blob = new Blob([fileContent], {
+        type: "text/plain;charset=utf-8",
+      });
+      saveAs(blob, "Scenarios.txt");
+    } else {
+      this.openNotificationWithIcon("error", "Generate tree before exporting scenarios", "");
+    }
+  };
+
   showDrawer = () => {
     this.setState({ visible: true });
   };
@@ -379,14 +400,6 @@ class App extends React.Component {
       selectedRowsArray: [],
       highestMetricsData: {},
     });
-  };
-
-  handleExportClick = () => {
-    if (this.state.scenarioData.length > 0) {
-      treeAnalyzerController.exportScenariosToFile(this.state.scenarioData);
-    } else {
-      console.log("No scenarios available for export");
-    }
   };
 
   render() {
@@ -441,7 +454,6 @@ class App extends React.Component {
             >
               <Button onClick={this.generate}>Generate</Button>
               <Button onClick={this.showDrawer}>Show Scenarios</Button>
-              <Button onClick={this.handleExportClick}>Export Scenarios</Button>
             </div>
           </Sider>
           <Layout>

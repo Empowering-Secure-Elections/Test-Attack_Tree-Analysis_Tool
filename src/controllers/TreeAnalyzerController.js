@@ -1,41 +1,6 @@
 import { attackPatterns } from "../assets/AttackPatterns";
 export default class TreeAnalyzerController {
 
-  // new for exporting
-  /**
-   * Exports the scenarios of a tree.
-   * The first column is the scenario number, 
-   * the second column is the value of the overall occurance of that scenario (up to 10 decimal places), 
-   * the third column is the path of nodes the scenario takes.
-   */
-  exportScenariosToFile(scenarios, nodeMap) {
-    this.nodeMap = nodeMap;
-
-    const textContent = scenarios.map((scenario) => {
-      // Convert each scenario into a string of tab-separated values
-      const path = scenario.path.join(" -> "); // Use "->" to represent hierarchy
-      return `${scenario.name}\t${scenario.o}\t${path}`;
-    }).join("\n"); // Join all scenario rows with a newline
-
-
-    // Create a Blob with the file content
-    const blob = new Blob([textContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-
-    // Create a link to download the file
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = 'scenarios.txt'; //a.download = 'scenarios.tsv'; // File name
-    document.body.appendChild(a);
-    a.click();
-
-    // Cleanup
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  }
-  // end of new
-
   /**
    * Analyzes a tree.
    * @param {object} tree A tree.
@@ -57,17 +22,9 @@ export default class TreeAnalyzerController {
       //Initialize object to hold specific mitigations
       var specificMitigations = {};
 
-      //new for exporting function
-      var pathData = {
-        path: [],
-        severity: 0,
-        highestMetrics: {},
-        o: -1, // Storing the "O" metric
-      };
-      //end new
-
       pathSeverity.unshift({
         path: [],
+        namepath: [], // To store the path of nodes by their names
         severity: 0,
         highestMetrics: {},
         o: -1,
@@ -117,8 +74,8 @@ export default class TreeAnalyzerController {
 
         // Add to the severity each of the valued weights.
         pathSeverity[0]["severity"] += paths[i][j]["value"];
-        pathSeverity[0]["path"].push(paths[i][j]["name"]); // to output the names in the path (when exporting)
-        //pathSeverity[0]["path"].push(paths[i][j]["id"]); // original
+        pathSeverity[0]["path"].push(paths[i][j]["id"]);
+        pathSeverity[0]["namepath"].push(paths[i][j]["name"]);
 
         // Loop over each specific recommendation and check if it's in the node name.
         for (const [key, value] of Object.entries(attackPatterns)) {

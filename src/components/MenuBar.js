@@ -55,6 +55,9 @@ class MenuBar extends Component {
       case "setting:3":
         Window.map.exportDSL();
         break;
+      case "setting:6":
+        Window.map.exportScenarios();
+        break;
     }
   };
 
@@ -272,6 +275,9 @@ class MenuBar extends Component {
             </Menu.Item>
             <Menu.Item key="setting:5" icon={<FileImageOutlined />}>
               <Button onClick={this.handleSvgSave.bind(this)}>Export SVG</Button>
+            </Menu.Item>
+            <Menu.Item key="setting:6" icon={<DownloadOutlined />}>
+              Export Scenarios
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">
