@@ -1,13 +1,11 @@
 import { attackPatterns } from "../assets/AttackPatterns";
 export default class TreeAnalyzerController {
-
   /**
    * Analyzes a tree.
    * @param {object} tree A tree.
    * @return {Array} The list of paths.
    */
   analyzeTree(tree) {
-
     // Initialize empty path severity array.
     var pathSeverity = [];
     // Array to hold metric characters.

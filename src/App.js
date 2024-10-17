@@ -344,21 +344,26 @@ class App extends React.Component {
   }
 
   exportDSL() {
-    var blob = new Blob([this.getTextAreaValue()], {
-      type: "text/plain;charset=utf-8",
-    });
-    saveAs(blob, "DSL.txt");
+    // Checks if scenario data exists which indicates the tree was generated
+    if (this.state.scenarioData && this.state.scenarioData.length > 0) {
+      var blob = new Blob([this.getTextAreaValue()], {
+        type: "text/plain;charset=utf-8",
+      });
+      saveAs(blob, "DSL.txt");
+    } else {
+      this.openNotificationWithIcon("error", "Generate tree before exporting DSL", "");
+    }
   }
 
   /**
   * Exports the scenarios of a tree.
   * The first column is the scenario number, 
-  * the second column is the value of the overall occurance of that scenario (up to 10 decimal places), 
-  * the third column is the path of nodes the scenario takes.
+  * the second column is the overall likelihood of that scenario, 
+  * the third column is the path of nodes of the scenario.
   */
   exportScenarios = () => {
-    // Checks to see if there is at least one scenario to export
-    if (this.state.scenarioData[0]) {
+    // Checks to see if there are scenarios
+    if (this.state.scenarioData && this.state.scenarioData.length > 0) {
       const fileContent = this.state.scenarioData.map((scenario) => {
         const path = scenario.namepath.join(" -> "); // Use "->" for path
         return `${scenario.name}\t${scenario.o}\t${path}`;

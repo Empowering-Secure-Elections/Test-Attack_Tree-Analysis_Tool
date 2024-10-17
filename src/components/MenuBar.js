@@ -84,20 +84,30 @@ class MenuBar extends Component {
 
   //save the graphic
   handleSvgSave(){
-    const svgContent = ReactDOMServer.renderToStaticMarkup(this.creategraphic());
-    const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
-    saveAs(blob, "Attack__Tree.svg");
+    // Checks if scenario data exists which indicates the tree was generated
+    if(this.props.scenarioData && this.props.scenarioData.length > 0) {
+      const svgContent = ReactDOMServer.renderToStaticMarkup(this.creategraphic());
+      const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
+      saveAs(blob, "Attack__Tree.svg");
+    } else{
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting SVG file", ""); 
+    }
   }
 
   toggleOpened = () => {
-    this.setState(
-      {
-        opened: !this.state.opened
-      },
-      () => {
-        this.setState({translate: document.getElementsByClassName("rd3t-svg")[0].width.baseVal.value})
-      }
-    )
+    // Checks if scenario data exists which indicates the tree was generated
+    if(this.props.scenarioData && this.props.scenarioData.length > 0) {
+      this.setState(
+        {
+          opened: !this.state.opened
+        },
+        () => {
+          this.setState({translate: document.getElementsByClassName("rd3t-svg")[0].width.baseVal.value})
+        }
+      )
+    } else{
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting report", ""); 
+    }
   };
 
   handleSave = () => {
