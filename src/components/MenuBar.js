@@ -14,7 +14,8 @@ import {
   DesktopOutlined,
   DownloadOutlined,
   FileOutlined,
-  FileImageOutlined
+  FileImageOutlined,
+  FileExcelOutlined
 } from "@ant-design/icons";
 import UIController from "../controllers/UIController";
 import { getByTestId } from "@testing-library/dom";
@@ -286,8 +287,8 @@ class MenuBar extends Component {
             <Menu.Item key="setting:5" icon={<FileImageOutlined />}>
               <Button onClick={this.handleSvgSave.bind(this)}>Export SVG</Button>
             </Menu.Item>
-            <Menu.Item key="setting:6" icon={<DownloadOutlined />}>
-              Export Scenarios
+            <Menu.Item key="setting:6" icon={<FileExcelOutlined />}>
+              Export CSV
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">
