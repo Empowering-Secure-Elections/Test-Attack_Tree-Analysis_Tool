@@ -22,6 +22,7 @@ export default class TreeAnalyzerController {
 
       pathSeverity.unshift({
         path: [],
+        namepath: [], // To store the path of nodes by their names
         severity: 0,
         highestMetrics: {},
         o: -1,
@@ -72,6 +73,7 @@ export default class TreeAnalyzerController {
         // Add to the severity each of the valued weights.
         pathSeverity[0]["severity"] += paths[i][j]["value"];
         pathSeverity[0]["path"].push(paths[i][j]["id"]);
+        pathSeverity[0]["namepath"].push(paths[i][j]["name"]);
 
         // Loop over each specific recommendation and check if it's in the node name.
         for (const [key, value] of Object.entries(attackPatterns)) {
@@ -96,7 +98,7 @@ export default class TreeAnalyzerController {
       if (pathSeverity[i]["o"] == -1) {
         pathSeverity[i]["o"] = "N/A";
       } else {
-        pathSeverity[i]["o"] = pathSeverity[i]["o"].toFixed(4);
+        pathSeverity[i]["o"] = pathSeverity[i]["o"].toFixed(10); // to output up to 10 decimal places
       }
       
       if (pathSeverity[i]["a"].length == 0) {

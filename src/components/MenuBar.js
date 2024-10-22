@@ -14,7 +14,8 @@ import {
   DesktopOutlined,
   DownloadOutlined,
   FileOutlined,
-  FileImageOutlined
+  FileImageOutlined,
+  FileExcelOutlined
 } from "@ant-design/icons";
 import UIController from "../controllers/UIController";
 import { getByTestId } from "@testing-library/dom";
@@ -55,6 +56,9 @@ class MenuBar extends Component {
       case "setting:3":
         Window.map.exportDSL();
         break;
+      case "setting:6":
+        Window.map.exportScenarios();
+        break;
     }
   };
 
@@ -81,20 +85,30 @@ class MenuBar extends Component {
 
   //save the graphic
   handleSvgSave(){
-    const svgContent = ReactDOMServer.renderToStaticMarkup(this.creategraphic());
-    const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
-    saveAs(blob, "Attack__Tree.svg");
+    // Checks if scenario data exists which indicates the tree was generated
+    if(this.props.scenarioData && this.props.scenarioData.length > 0) {
+      const svgContent = ReactDOMServer.renderToStaticMarkup(this.creategraphic());
+      const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
+      saveAs(blob, "Attack__Tree.svg");
+    } else{
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting SVG file", ""); 
+    }
   }
 
   toggleOpened = () => {
-    this.setState(
-      {
-        opened: !this.state.opened
-      },
-      () => {
-        this.setState({translate: document.getElementsByClassName("rd3t-svg")[0].width.baseVal.value})
-      }
-    )
+    // Checks if scenario data exists which indicates the tree was generated
+    if(this.props.scenarioData && this.props.scenarioData.length > 0) {
+      this.setState(
+        {
+          opened: !this.state.opened
+        },
+        () => {
+          this.setState({translate: document.getElementsByClassName("rd3t-svg")[0].width.baseVal.value})
+        }
+      )
+    } else{
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting report", ""); 
+    }
   };
 
   handleSave = () => {
@@ -272,6 +286,9 @@ class MenuBar extends Component {
             </Menu.Item>
             <Menu.Item key="setting:5" icon={<FileImageOutlined />}>
               <Button onClick={this.handleSvgSave.bind(this)}>Export SVG</Button>
+            </Menu.Item>
+            <Menu.Item key="setting:6" icon={<FileExcelOutlined />}>
+              Export CSV
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">
