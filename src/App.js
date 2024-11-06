@@ -355,29 +355,6 @@ class App extends React.Component {
     }
   }
 
-  /**
-  * Exports the scenarios of a tree.
-  * The first column is the scenario number, 
-  * the second column is the overall likelihood of that scenario, 
-  * the third column is the path of nodes of the scenario.
-  */
-  exportScenarios = () => {
-    // Checks to see if there are scenarios
-    if (this.state.scenarioData && this.state.scenarioData.length > 0) {
-      const fileContent = this.state.scenarioData.map((scenario) => {
-        const path = scenario.namepath.join(" -> "); // Use "->" for path
-        return `${scenario.name},${scenario.o},${path}`;
-      }).join("\n");
-  
-      var blob = new Blob([fileContent], {
-        type: "text/csv;charset=utf-8",
-      });
-      saveAs(blob, "Scenarios.csv");
-    } else {
-      this.openNotificationWithIcon("error", "Generate tree before exporting CSV file", "");
-    }
-  };
-
   showDrawer = () => {
     this.setState({ visible: true });
   };
