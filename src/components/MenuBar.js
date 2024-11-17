@@ -64,7 +64,10 @@ class MenuBar extends Component {
         this.handleCsvSave();
         break;
       case "setting:7":
-        this.handlePdfSave();
+        this.handleTreePdfSave();
+        break;
+      case "setting:8":
+        Window.map.handleScenarioPdfSave();
         break;
     }
   };
@@ -281,7 +284,7 @@ class MenuBar extends Component {
   /**
   * Exports the image of the attack tree in PDF format.
   */
-  handlePdfSave = async () => {
+  handleTreePdfSave = async () => {
     if (this.props.scenarioData && this.props.scenarioData.length > 0) {
       const treeContainer = document.querySelector(".rd3t-tree-container");
       const originalSvg = treeContainer.querySelector("svg");
@@ -365,7 +368,7 @@ class MenuBar extends Component {
   };
 
   /**
-  * Formats the foreign objects for svg. For the pdf save method.
+  * Formats the foreign objects for svg. For the tree pdf save method.
   */
   convertForeignObjectToSvg = async (object) => {
     const div = object.querySelector('div');

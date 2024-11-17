@@ -16,6 +16,11 @@ import RecommendationBox from "./components/RecommendationBox";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 import "codemirror/lib/codemirror.css";
 
+import { svg2pdf } from 'svg2pdf.js';
+import { jsPDF } from 'jspdf';
+import AND from "./assets/AND.png";
+import OR from "./assets/OR.png";
+
 // Attack tree metrics will include likelihood (L), victim impact (V),
 // resource points (R), and time (T).
 // Keep this import here just in case.
@@ -355,6 +360,478 @@ class App extends React.Component {
     }
   }
 
+  /**
+  * Exports the image of the scenario attack tree in PDF format.
+  */
+  handleScenarioPdfSave = async () => {
+    const treeContainer = document.querySelector(".rd3t-tree-container");
+    const originalSvg = treeContainer.querySelector("svg");
+    const svgClone = originalSvg.cloneNode(true);
+
+    await this.removeNonHighlightedElements(svgClone);
+
+    // Generate paths (connection lines)
+    const paths = svgClone.querySelectorAll('.highlight_link');
+    paths.forEach(path => {
+      path.setAttribute('stroke', 'black');
+      path.setAttribute('stroke-width', '1.5');
+      path.setAttribute('fill', 'none');
+      path.removeAttribute('marker-end');
+      path.removeAttribute('marker-start');
+    });
+
+    const allPaths = Array.from(svgClone.querySelectorAll('.highlight_link'));
+    const mainGroup = svgClone.querySelector('g');
+    if (mainGroup && allPaths.length > 0) {
+      allPaths.forEach(path => {
+        mainGroup.insertBefore(path, mainGroup.firstChild);
+      });
+    }
+
+    // Process foreignObject elements
+    const foreignObjects = svgClone.querySelectorAll('foreignObject');
+    for (const foreignObject of foreignObjects) {
+      const g = await this.convertForeignObjectToSvg(foreignObject);
+      if (g) {
+        foreignObject.parentNode.replaceChild(g, foreignObject);
+      }
+    }
+
+    // TODO fix - Get the tree dimensions from the original SVG 
+    const treeBox = originalSvg.getBBox();
+    const margin = 50;
+    let width = treeBox.width + (margin * 2);
+    let height = treeBox.height + (margin * 2);
+
+    //const highlightedBox = mainGroup.getBBox();
+    //svgClone.setAttribute('viewBox',
+      //`${highlightedBox.x - margin} ${highlightedBox.y - margin} 
+       //${highlightedBox.width + margin * 2} ${highlightedBox.height + margin * 2}`
+    //);
+
+    const MAX_PDF_DIMENSION = 14400;
+
+    let scale = 1;
+    if (width > MAX_PDF_DIMENSION || height > MAX_PDF_DIMENSION) {
+      const widthScale = MAX_PDF_DIMENSION / width;
+      const heightScale = MAX_PDF_DIMENSION / height;
+      scale = Math.min(widthScale, heightScale) * 0.95;
+
+      width *= scale;
+      height *= scale;
+    }
+
+    // Center the tree
+    svgClone.setAttribute('viewBox',
+      `${treeBox.x - margin} ${treeBox.y - margin} ${treeBox.width + margin * 2} ${treeBox.height + margin * 2}`
+    );
+
+    const headerHeight = 120;
+    height += headerHeight;
+
+    // Create PDF with adjusted dimensions
+    const pdf = new jsPDF({
+      orientation: height > width ? 'portrait' : 'landscape',
+      unit: 'pt',
+      format: [width, height]
+    });
+
+    // Get the scenario data
+    const selectedScenarioId = this.state.selectedRowsArray[0];
+    const selectedScenario = this.state.scenarioData.find(
+      scenario => scenario.key === selectedScenarioId
+    );
+
+    // Add header
+    pdf.setFillColor(240, 240, 240);
+    pdf.rect(0, 0, width, headerHeight, 'F');
+
+    pdf.setFontSize(16);
+    pdf.text(`Scenario #${selectedScenario.key}`, 20, 20);
+    pdf.setFontSize(12);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(`Metrics:`, 20, 40);
+    pdf.text(`Occurrence Score: ${selectedScenario.o}`, 20, 55);
+    pdf.text(`Attack Cost: ${selectedScenario.a}`, 20, 70);
+    pdf.text(`Technical Difficulty: ${selectedScenario.t}`, 20, 85);
+    pdf.text(`Discovering Difficulty: ${selectedScenario.d}`, 20, 100);
+
+    try {
+      const tempContainer = document.createElement('div');
+      tempContainer.appendChild(svgClone);
+      document.body.appendChild(tempContainer);
+
+      await svg2pdf(svgClone, pdf, {
+        x: 0,
+        y: headerHeight,
+        width: width,
+        height: height - headerHeight
+      });
+
+      pdf.save(`Scenario_${selectedScenarioId}.pdf`);
+      document.body.removeChild(tempContainer);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw error;
+    }
+  };
+
+  /**
+  * Formats the foreign objects for svg. For the scenario pdf save method.
+  */
+  convertForeignObjectToSvg = async (object) => {
+    const div = object.querySelector('div');
+    if (!div) return;
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+    const isOperator = object.getAttribute('data-node-type') === 'operator';
+    const imgAlt = object.getAttribute('data-img-alt');
+
+    const transform = object.getAttribute('transform');
+    const translateMatch = transform ? transform.match(/translate\(([-\d.]+),\s*([-\d.]+)\)/) : null;
+    const translateX = translateMatch ? parseFloat(translateMatch[1]) : 0;
+    const translateY = translateMatch ? parseFloat(translateMatch[2]) : 0;
+
+    g.setAttribute('transform', `translate(${translateX},${translateY})`);
+
+    g.setAttribute('data-node-type', isOperator ? 'operator' : 'leaf');
+
+    if (isOperator) {
+      // Operator images
+      const operatorBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      operatorBg.setAttribute("x", "-20");
+      operatorBg.setAttribute("y", "-40");
+      operatorBg.setAttribute("width", "40");
+      operatorBg.setAttribute("height", "40");
+      operatorBg.setAttribute("fill", "white");
+      operatorBg.setAttribute("rx", "5");
+      g.appendChild(operatorBg);
+
+      const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+      const imgSrc = imgAlt?.toUpperCase().includes('AND') ? AND : OR;
+
+      image.setAttributeNS("http://www.w3.org/1999/xlink", "href", imgSrc);
+      image.setAttribute("width", "40");
+      image.setAttribute("height", "40");
+      image.setAttribute("x", "-20");
+      image.setAttribute("y", "-40");
+      g.appendChild(image);
+    }
+
+    const textDiv = div.querySelector('div') || div;
+    const textContent = textDiv.textContent;
+    if (textContent) {
+      if (isOperator) {
+        // Operator text boxes
+        const maxWidth = 180;
+        const textHeight = 30;
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", -maxWidth / 2);
+        rect.setAttribute("y", "10");
+        rect.setAttribute("width", maxWidth.toString());
+        rect.setAttribute("height", textHeight.toString());
+        rect.setAttribute("fill", "white");
+        rect.setAttribute("stroke", "black");
+        rect.setAttribute("stroke-width", "1");
+        rect.setAttribute("rx", "5");
+        g.appendChild(rect);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("font-family", "Arial");
+        text.setAttribute("font-size", "14px");
+        g.appendChild(text);
+
+        const words = textContent.split(" ");
+        let line = [];
+        let lineCount = 0;
+        const lineHeight = 15;
+        const startY = 25;
+
+        words.forEach((word) => {
+          const testLine = line.length === 0 ? word : line.join(" ") + " " + word;
+          const testLineWidth = testLine.length * 8;
+
+          if (testLineWidth > maxWidth - 2) {
+            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+            tspan.setAttribute("x", "0");
+            tspan.setAttribute("y", startY + (lineCount * lineHeight));
+            tspan.textContent = line.join(" ");
+            text.appendChild(tspan);
+
+            line = [word];
+            lineCount++;
+          } else {
+            line.push(word);
+          }
+        });
+
+        if (line.length > 0) {
+          const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+          tspan.setAttribute("x", "0");
+          tspan.setAttribute("y", startY + (lineCount * lineHeight));
+          tspan.textContent = line.join(" ");
+          text.appendChild(tspan);
+        }
+
+        const totalHeight = Math.max(textHeight, (lineCount) * lineHeight + 20);
+        rect.setAttribute("height", totalHeight.toString());
+      } else {
+        // Leaf text boxes
+        const maxWidth = 135;
+        const boxHeight = 65;
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", -maxWidth / 2);
+        rect.setAttribute("y", -boxHeight / 50);
+        rect.setAttribute("width", maxWidth.toString());
+        rect.setAttribute("height", boxHeight.toString());
+        rect.setAttribute("fill", "none");
+        rect.setAttribute("stroke", "black");
+        rect.setAttribute("stroke-width", "1");
+        g.appendChild(rect);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("font-family", "Arial");
+        text.setAttribute("font-size", "14px");
+        g.appendChild(text);
+
+        const words = textContent.split(" ");
+        let line = [];
+        let lineCount = 0;
+        const lineHeight = 15;
+        const startY = 20;
+
+        words.forEach((word) => {
+          const testLine = line.length === 0 ? word : line.join(" ") + " " + word;
+          const testLineWidth = testLine.length * 8;
+
+          if (testLineWidth > maxWidth - 2) {
+            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+            tspan.setAttribute("x", "0");
+            tspan.setAttribute("y", startY + (lineCount * lineHeight));
+            tspan.textContent = line.join(" ");
+            text.appendChild(tspan);
+
+            line = [word];
+            lineCount++;
+          } else {
+            line.push(word);
+          }
+        });
+
+        if (line.length > 0) {
+          const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+          tspan.setAttribute("x", "0");
+          tspan.setAttribute("y", startY + (lineCount * lineHeight));
+          tspan.textContent = line.join(" ");
+          text.appendChild(tspan);
+        }
+
+        const totalHeight = Math.max(boxHeight, (lineCount) * lineHeight + 40);
+        rect.setAttribute("height", totalHeight.toString());
+      }
+    }
+
+    return g;
+  };
+
+  /**
+  * Removes the nodes in the tree that are not highlighed for a scenario. For the scenario pdf save method.
+  */
+  async removeNonHighlightedElements(svgClone) {
+    const highlightedPaths = svgClone.querySelectorAll('.highlight_link');
+    const andOrNodes = svgClone.querySelectorAll('.rd3t-node');
+    const leafNodes = svgClone.querySelectorAll('.rd3t-leaf-node');
+    const highlightedNodeIds = new Set();
+
+    // Function to extract coordinates from transform attribute
+    const getNodeCoordinates = (transform) => {
+      const match = transform.match(/translate\(([-\d.]+),([-\d.]+)\)/);
+      return match ? { x: parseFloat(match[1]), y: parseFloat(match[2]) } : null;
+    };
+
+    // Function to extract coordinates from path's d attribute
+    const getPathEndpoints = (d) => {
+      const coordinates = d.split(/[A-Z,\s]+/).filter(c => c).map(parseFloat);
+      return {
+        start: { x: coordinates[0], y: coordinates[1] },
+        end: { x: coordinates[coordinates.length - 2], y: coordinates[coordinates.length - 1] }
+      };
+    };
+
+    // Build a map of node positions
+    const nodePositions = new Map();
+    const preservedNodes = new Map();
+    const addNodeToPositionMap = (node) => {
+      const transform = node.getAttribute('transform');
+      if (transform) {
+        const coords = getNodeCoordinates(transform);
+        if (coords) {
+          const nodeId = node.getAttribute('data-id') || node.id;
+          nodePositions.set(`${coords.x},${coords.y}`, nodeId);
+
+          // Store the complete node information including image details
+          const foreignObject = node.querySelector('foreignObject');
+          const img = foreignObject?.querySelector('img');
+          const nodeInfo = {
+            isOperator: node.classList.contains('rd3t-node') && !node.classList.contains('rd3t-leaf-node'),
+            content: node.innerHTML,
+            foreignObject: foreignObject?.cloneNode(true),
+            imgAlt: img?.alt || null,  // Preserve the alt text of the image
+            imgSrc: img?.src || null   // Preserve the source of the image
+          };
+          preservedNodes.set(nodeId, nodeInfo);
+        }
+      }
+    };
+
+    // Initialize node positions and preserve attributes
+    andOrNodes.forEach(addNodeToPositionMap);
+    leafNodes.forEach(addNodeToPositionMap);
+
+    // Function to find all connected nodes through highlighted paths
+    const findConnectedNodes = (nodeId) => {
+      const connectedPaths = Array.from(highlightedPaths).filter(path => {
+        const pathD = path.getAttribute('d');
+        if (!pathD) return false;
+
+        const endpoints = getPathEndpoints(pathD);
+        const startKey = `${endpoints.start.x},${endpoints.start.y}`;
+        const endKey = `${endpoints.end.x},${endpoints.end.y}`;
+
+        return nodePositions.get(startKey) === nodeId || nodePositions.get(endKey) === nodeId;
+      });
+
+      connectedPaths.forEach(path => {
+        const endpoints = getPathEndpoints(path.getAttribute('d'));
+        const startKey = `${endpoints.start.x},${endpoints.start.y}`;
+        const endKey = `${endpoints.end.x},${endpoints.end.y}`;
+
+        const startNodeId = nodePositions.get(startKey);
+        const endNodeId = nodePositions.get(endKey);
+
+        if (startNodeId && !highlightedNodeIds.has(startNodeId)) {
+          highlightedNodeIds.add(startNodeId);
+          findConnectedNodes(startNodeId);
+        }
+        if (endNodeId && !highlightedNodeIds.has(endNodeId)) {
+          highlightedNodeIds.add(endNodeId);
+          findConnectedNodes(endNodeId);
+        }
+      });
+    };
+
+    // Find initially highlighted nodes
+    highlightedPaths.forEach(path => {
+      const pathD = path.getAttribute('d');
+      if (pathD) {
+        const endpoints = getPathEndpoints(pathD);
+        const startKey = `${endpoints.start.x},${endpoints.start.y}`;
+        const endKey = `${endpoints.end.x},${endpoints.end.y}`;
+
+        const startNodeId = nodePositions.get(startKey);
+        const endNodeId = nodePositions.get(endKey);
+
+        if (startNodeId) highlightedNodeIds.add(startNodeId);
+        if (endNodeId) highlightedNodeIds.add(endNodeId);
+      }
+    });
+
+    // Process all initially highlighted nodes to find their connections
+    Array.from(highlightedNodeIds).forEach(findConnectedNodes);
+
+    // Remove non-highlighted nodes while preserving node structure
+    const removeNonHighlighted = (elements, checkFunction) => {
+      elements.forEach(element => {
+        const nodeId = element.getAttribute('data-id') || element.id;
+        if (!checkFunction(element)) {
+          element.remove();
+        } else {
+          // Restore the preserved node content
+          const nodeInfo = preservedNodes.get(nodeId);
+          if (nodeInfo) {
+            // Clear existing classes using setAttribute
+            element.setAttribute('class', '');
+
+            // Properly restore node type classes using setAttribute
+            if (nodeInfo.isOperator) {
+              element.setAttribute('class', 'rd3t-node');
+              element.setAttribute('data-node-type', 'operator');
+
+              // Ensure the foreignObject is properly preserved with the image
+              if (nodeInfo.foreignObject) {
+                const currentForeignObject = element.querySelector('foreignObject');
+                if (currentForeignObject) {
+                  const newForeignObject = nodeInfo.foreignObject.cloneNode(true);
+
+                  // Ensure the image is properly preserved
+                  const img = newForeignObject.querySelector('img');
+                  if (img && nodeInfo.imgAlt) {
+                    img.alt = nodeInfo.imgAlt;
+                    img.src = nodeInfo.imgSrc;
+                    img.style.display = 'block';
+                  }
+
+                  // Transfer node type and image information
+                  newForeignObject.setAttribute('data-node-type', 'operator');
+                  if (nodeInfo.imgAlt) {
+                    newForeignObject.setAttribute('data-img-alt', nodeInfo.imgAlt);
+                  }
+
+                  // Preserve any necessary attributes from the original
+                  ['transform', 'width', 'height'].forEach(attr => {
+                    if (currentForeignObject.hasAttribute(attr)) {
+                      newForeignObject.setAttribute(attr,
+                        currentForeignObject.getAttribute(attr));
+                    }
+                  });
+
+                  currentForeignObject.replaceWith(newForeignObject);
+                }
+              }
+            } else {
+              // For leaf nodes
+              element.setAttribute('class', 'rd3t-leaf-node');
+              element.setAttribute('data-node-type', 'leaf');
+            }
+          }
+
+        }
+      });
+    };
+
+    removeNonHighlighted(andOrNodes, node => {
+      const nodeId = node.getAttribute('data-id') || node.id;
+      return highlightedNodeIds.has(nodeId);
+    });
+    removeNonHighlighted(leafNodes, node => {
+      const nodeId = node.getAttribute('data-id') || node.id;
+      return highlightedNodeIds.has(nodeId);
+    });
+    removeNonHighlighted(
+      svgClone.querySelectorAll('path'),
+      path => path.classList.contains('highlight_link')
+    );
+
+    // Clean up orphaned elements
+    const cleanup = () => {
+      const before = svgClone.innerHTML.length;
+      svgClone.querySelectorAll('*').forEach(el => {
+        if (!el.innerHTML.trim() && !el.getAttribute('d')) {
+          el.remove();
+        }
+      });
+      const after = svgClone.innerHTML.length;
+      return before !== after;
+    };
+
+    while (cleanup()) { }
+  }
+
   showDrawer = () => {
     this.setState({ visible: true });
   };
@@ -384,8 +861,29 @@ class App extends React.Component {
     });
   };
 
+  scenarioPdfExport = async (record) => {
+    await this.rowSelectionOnChange([record.key], [record]);
+    await this.handleScenarioPdfSave();
+  };
+
   render() {
     const { panes, activeKey } = this.state;
+    // Define the actionsColumn for the scenarios display
+    const actionsColumn = {
+      title: 'Actions',
+      key: 'actions',
+      width: 100,
+      render: (record) => (
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            this.scenarioPdfExport(record);
+          }}
+        >
+          Export
+        </Button>
+      ),
+    };
     if (this.instance != null) {
     }
     console.log("app render");
@@ -459,7 +957,7 @@ class App extends React.Component {
                   onChange: this.rowSelectionOnChange,
                   selectedRowKeys: this.state.selectedRowsArray,
                 }}
-                columns={columns}
+                columns={[...columns, actionsColumn]}
                 dataSource={this.state.scenarioData}
               />
             </Drawer>
