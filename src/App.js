@@ -15,7 +15,6 @@ import MenuBar from "./components/MenuBar";
 import RecommendationBox from "./components/RecommendationBox";
 import { UnControlled as CodeMirror } from "react-codemirror2";
 import "codemirror/lib/codemirror.css";
-
 import { svg2pdf } from 'svg2pdf.js';
 import { jsPDF } from 'jspdf';
 import AND from "./assets/AND.png";
@@ -370,6 +369,71 @@ class App extends React.Component {
 
     await this.removeNonHighlightedElements(svgClone);
 
+    // Get the scenario data
+    const selectedScenarioId = this.state.selectedRowsArray[0];
+    const selectedScenario = this.state.scenarioData.find(
+      scenario => scenario.key === selectedScenarioId
+    );
+
+    // Get names of visible leaf nodes
+    const visibleLeafNodes = Array.from(
+      await svgClone.querySelectorAll('.rd3t-leaf-node')
+    ).map(leaf => leaf.textContent);
+
+    // Filter the namepath to only include nodes that are leaf nodes
+    const scenarioLeafNodes = selectedScenario.namepath.filter(nodeName =>
+      visibleLeafNodes.includes(nodeName)
+    );
+
+    // Get the corresponding indices
+    const scenarioLeafNodeIndices = scenarioLeafNodes.map(nodeName => {
+      const nameIndex = selectedScenario.namepath.indexOf(nodeName);
+      return selectedScenario.path[nameIndex];
+    });
+
+    const getScenarioLeafNode = (node, nodeIndex) => {
+      if ((!node.children || node.children.length === 0) &&
+        !node.operator && (nodeIndex == node.ID)) {
+        return node;
+      }
+
+      if (node.children) {
+        for (const child of node.children) {
+          const foundNode = getScenarioLeafNode(child, nodeIndex);
+          if (foundNode) return foundNode; // Return as soon as the node is found
+        }
+      }
+
+      return null;
+    };
+
+    const getMetricsForScenarioLeafNodes = () => {
+      return scenarioLeafNodes.map((nodeName, index) => {
+        const nodeIndex = scenarioLeafNodeIndices[index];
+        const leafNode = getScenarioLeafNode(this.state.treeData, nodeIndex);
+
+        return {
+          name: nodeName,
+          id: nodeIndex,
+          a: leafNode.a || 0,
+          t: leafNode.t || 0,
+          d: leafNode.d || 0,
+          o: leafNode.o || 0
+        };
+      });
+    };
+
+    const leafNodesWithMetrics = getMetricsForScenarioLeafNodes();
+
+    const metricsSummary = leafNodesWithMetrics.map(node => ({
+      name: node.name,
+      id: node.id,
+      a: node.a,
+      t: node.t,
+      d: node.d,
+      o: node.o
+    }));
+
     // Generate paths (connection lines)
     const paths = svgClone.querySelectorAll('.highlight_link');
     paths.forEach(path => {
@@ -391,40 +455,83 @@ class App extends React.Component {
     // Process foreignObject elements
     const foreignObjects = svgClone.querySelectorAll('foreignObject');
     for (const foreignObject of foreignObjects) {
-      const g = await this.convertForeignObjectToSvg(foreignObject);
+      const g = await this.convertForeignObjectToSvg(foreignObject, true);
       if (g) {
         foreignObject.parentNode.replaceChild(g, foreignObject);
       }
     }
 
-    // TODO fix - Get the tree dimensions from the original SVG 
-    const treeBox = originalSvg.getBBox();
-    const margin = 50;
-    let width = treeBox.width + (margin * 2);
-    let height = treeBox.height + (margin * 2);
+    // Calculate dimensions of the pdf
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
 
-    //const highlightedBox = mainGroup.getBBox();
-    //svgClone.setAttribute('viewBox',
-      //`${highlightedBox.x - margin} ${highlightedBox.y - margin} 
-       //${highlightedBox.width + margin * 2} ${highlightedBox.height + margin * 2}`
-    //);
+    const allElements = [...svgClone.querySelectorAll('g[transform]'), ...allPaths];
+    allElements.forEach(element => {
+      const getElementBounds = (el) => {
+        const bbox = el.getBBox();
+        const transform = el.getAttribute('transform');
+        let translateX = 0;
+        let translateY = 0;
+
+        if (transform) {
+          const match = transform.match(/translate\(([^,]+),([^)]+)\)/);
+          if (match) {
+            translateX = parseFloat(match[1]);
+            translateY = parseFloat(match[2]);
+          }
+        }
+
+        minX = Math.min(minX, bbox.x + translateX);
+        minY = Math.min(minY, bbox.y + translateY);
+        maxX = Math.max(maxX, bbox.x + bbox.width + translateX);
+        maxY = Math.max(maxY, bbox.y + bbox.height + translateY);
+
+        Array.from(el.children).forEach(child => {
+          if (child.getBBox) {
+            getElementBounds(child);
+          }
+        });
+      };
+
+      getElementBounds(element);
+    });
+
+    const margin = 50;
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+
+    let width = contentWidth + (margin * 2) + 200;
+    let height = contentHeight + (margin * 2) + 200;
+
+    // Center content
+    const desiredCenterX = width / 2;
+    const desiredCenterY = height / 2;
+
+    const contentCenterX = minX + (contentWidth / 2);
+    const contentCenterY = minY + (contentHeight / 2);
+
+    const translateX = desiredCenterX - contentCenterX;
+    const translateY = desiredCenterY - contentCenterY;
+
+    if (mainGroup) {
+      mainGroup.setAttribute('transform', `translate(${translateX},${translateY})`);
+    }
+
+    // Set viewBox and dimensions
+    svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svgClone.setAttribute('width', width);
+    svgClone.setAttribute('height', height);
 
     const MAX_PDF_DIMENSION = 14400;
-
-    let scale = 1;
     if (width > MAX_PDF_DIMENSION || height > MAX_PDF_DIMENSION) {
       const widthScale = MAX_PDF_DIMENSION / width;
       const heightScale = MAX_PDF_DIMENSION / height;
-      scale = Math.min(widthScale, heightScale) * 0.95;
-
+      const scale = Math.min(widthScale, heightScale) * 0.95;
       width *= scale;
       height *= scale;
     }
-
-    // Center the tree
-    svgClone.setAttribute('viewBox',
-      `${treeBox.x - margin} ${treeBox.y - margin} ${treeBox.width + margin * 2} ${treeBox.height + margin * 2}`
-    );
 
     const headerHeight = 120;
     height += headerHeight;
@@ -436,25 +543,33 @@ class App extends React.Component {
       format: [width, height]
     });
 
-    // Get the scenario data
-    const selectedScenarioId = this.state.selectedRowsArray[0];
-    const selectedScenario = this.state.scenarioData.find(
-      scenario => scenario.key === selectedScenarioId
-    );
-
     // Add header
     pdf.setFillColor(240, 240, 240);
     pdf.rect(0, 0, width, headerHeight, 'F');
 
     pdf.setFontSize(16);
-    pdf.text(`Scenario #${selectedScenario.key}`, 20, 20);
+    pdf.text(`Scenario #${selectedScenario.key}`, 20, 25);
     pdf.setFontSize(12);
     pdf.setTextColor(0, 0, 0);
-    pdf.text(`Metrics:`, 20, 40);
-    pdf.text(`Occurrence Score: ${selectedScenario.o}`, 20, 55);
-    pdf.text(`Attack Cost: ${selectedScenario.a}`, 20, 70);
-    pdf.text(`Technical Difficulty: ${selectedScenario.t}`, 20, 85);
-    pdf.text(`Discovering Difficulty: ${selectedScenario.d}`, 20, 100);
+    pdf.text(`Overall scenario o: ${selectedScenario.o}`, 20, 45);
+
+    const lineHeight = 20;
+    const leftMargin = 20;
+    let xPosition = leftMargin;
+    let yPosition = 85; // Start below other printed stuff
+
+    // Iterate over metricsSummary to add leaf node details to pdf header
+    metricsSummary.forEach((node) => {
+      if (yPosition + lineHeight * 2 > headerHeight) {
+        xPosition += 300;
+        yPosition = 20;
+      }
+
+      pdf.text(node.name, xPosition, yPosition);
+      yPosition += lineHeight;
+      pdf.text(`a: ${node.a}, t: ${node.t}, d: ${node.d}`, xPosition + 10, yPosition); // Indent for metrics
+      yPosition += lineHeight + 10; // Add space for next node
+    });
 
     try {
       const tempContainer = document.createElement('div');
@@ -477,25 +592,35 @@ class App extends React.Component {
   };
 
   /**
-  * Formats the foreign objects for svg. For the scenario pdf save method.
-  */
-  convertForeignObjectToSvg = async (object) => {
+   * Formats the foreign objects for svg. For the pdf export methods.
+   * @param {Element} object The foreignObject element to convert
+   * @param {boolean} useDataNodeType Whether to use data-node-type attribute for node type detection
+   * @returns {Promise<SVGElement|undefined>} The converted SVG group element
+   */
+  convertForeignObjectToSvg = async (object, useDataNodeType = false) => {
     const div = object.querySelector('div');
     if (!div) return;
 
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-    const isOperator = object.getAttribute('data-node-type') === 'operator';
-    const imgAlt = object.getAttribute('data-img-alt');
-
     const transform = object.getAttribute('transform');
     const translateMatch = transform ? transform.match(/translate\(([-\d.]+),\s*([-\d.]+)\)/) : null;
     const translateX = translateMatch ? parseFloat(translateMatch[1]) : 0;
     const translateY = translateMatch ? parseFloat(translateMatch[2]) : 0;
-
     g.setAttribute('transform', `translate(${translateX},${translateY})`);
 
-    g.setAttribute('data-node-type', isOperator ? 'operator' : 'leaf');
+    let isOperator;
+    if (useDataNodeType) {
+      isOperator = object.getAttribute('data-node-type') === 'operator';
+      g.setAttribute('data-node-type', isOperator ? 'operator' : 'leaf');
+    } else {
+      const img = div.querySelector('img');
+      isOperator = !!img;
+    }
+
+    const imgAlt = useDataNodeType ?
+      object.getAttribute('data-img-alt') :
+      div.querySelector('img')?.alt;
 
     if (isOperator) {
       // Operator images
