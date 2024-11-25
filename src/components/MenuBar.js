@@ -24,8 +24,6 @@ import RecommendationBox from "./RecommendationBox";
 import {SVG} from '@svgdotjs/svg.js'
 import { svg2pdf } from 'svg2pdf.js';
 import { jsPDF } from 'jspdf';
-import AND from "../assets/AND.png";
-import OR from "../assets/OR.png";
 
 const uiController = new UIController();
 
@@ -41,7 +39,7 @@ class MenuBar extends Component {
   }
 
   componentDidMount() {
-    this.setState({translate: document.getElementsByClassName("rd3t-svg")[0].width.baseVal.value})
+    this.setState({ translate: document.getElementsByClassName("rd3t-svg")[0].width.baseVal.value })
   }
 
   handleClick = (e) => {
@@ -64,7 +62,10 @@ class MenuBar extends Component {
         this.handleCsvSave();
         break;
       case "setting:7":
-        this.handlePdfSave();
+        this.handleTreePdfSave();
+        break;
+      case "setting:8":
+        Window.map.handleScenarioPdfSave();
         break;
     }
   };
@@ -281,7 +282,7 @@ class MenuBar extends Component {
   /**
   * Exports the image of the attack tree in PDF format.
   */
-  handlePdfSave = async () => {
+  handleTreePdfSave = async () => {
     if (this.props.scenarioData && this.props.scenarioData.length > 0) {
       const treeContainer = document.querySelector(".rd3t-tree-container");
       const originalSvg = treeContainer.querySelector("svg");
@@ -308,11 +309,11 @@ class MenuBar extends Component {
       // Process the foreignObject elements (the nodes and text boxes)
       const foreignObjects = svgClone.querySelectorAll('foreignObject');
       for (const foreignObject of foreignObjects) {
-        const g = await this.convertForeignObjectToSvg(foreignObject);
+        const g = await Window.map.convertForeignObjectToSvg(foreignObject, false);
         if (g) {
           foreignObject.parentNode.replaceChild(g, foreignObject);
         }
-      }      
+      }
 
       const treeBox = originalSvg.getBBox();
       const margin = 50;
@@ -362,168 +363,6 @@ class MenuBar extends Component {
     } else {
       Window.map.openNotificationWithIcon("error", "Generate tree before exporting PDF file", "");
     }
-  };
-
-  /**
-  * Formats the foreign objects for svg. For the pdf save method.
-  */
-  convertForeignObjectToSvg = async (object) => {
-    const div = object.querySelector('div');
-    if (!div) return;
-
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
-    const transform = object.getAttribute('transform');
-    const translateMatch = transform ? transform.match(/translate\(([-\d.]+),\s*([-\d.]+)\)/) : null;
-    const translateX = translateMatch ? parseFloat(translateMatch[1]) : 0;
-    const translateY = translateMatch ? parseFloat(translateMatch[2]) : 0;
-
-    g.setAttribute('transform', `translate(${translateX},${translateY})`);
-
-    // Handle operator node images
-    const img = div.querySelector('img');
-    if (img) {
-      const operatorBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      operatorBg.setAttribute("x", "-20");
-      operatorBg.setAttribute("y", "-40");
-      operatorBg.setAttribute("width", "40");
-      operatorBg.setAttribute("height", "40");
-      operatorBg.setAttribute("fill", "white");
-      operatorBg.setAttribute("rx", "5");
-      g.appendChild(operatorBg);
-
-      const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
-      const imgSrc = img.alt.toUpperCase().includes('AND') ? AND : OR;
-
-      image.setAttributeNS("http://www.w3.org/1999/xlink", "href", imgSrc);
-      image.setAttribute("width", "40");
-      image.setAttribute("height", "40");
-      image.setAttribute("x", "-20");
-      image.setAttribute("y", "-40");
-      g.appendChild(image);
-    }
-
-    // Handle text content
-    const textDiv = div.querySelector('div') || div;
-    const textContent = textDiv.textContent;
-    if (textContent) {
-      if (img) {
-        // Operator text boxes
-        const maxWidth = 180;
-        const textHeight = 30;
-
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", -maxWidth / 2);
-        rect.setAttribute("y", "10");
-        rect.setAttribute("width", maxWidth.toString());
-        rect.setAttribute("height", textHeight.toString());
-        rect.setAttribute("fill", "white");
-        rect.setAttribute("stroke", "black");
-        rect.setAttribute("stroke-width", "1");
-        rect.setAttribute("rx", "5");
-        g.appendChild(rect);
-
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("font-family", "Arial");
-        text.setAttribute("font-size", "14px");
-        g.appendChild(text);
-
-        const words = textContent.split(" ");
-        let line = [];
-        let lineCount = 0;
-        const lineHeight = 15;
-        const startY = 25;
-
-        // Process words into lines
-        words.forEach((word) => {
-          const testLine = line.length === 0 ? word : line.join(" ") + " " + word;
-          const testLineWidth = testLine.length * 8;
-
-          if (testLineWidth > maxWidth - 2) {
-            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-            tspan.setAttribute("x", "0");
-            tspan.setAttribute("y", startY + (lineCount * lineHeight));
-            tspan.textContent = line.join(" ");
-            text.appendChild(tspan);
-
-            line = [word];
-            lineCount++;
-          } else {
-            line.push(word);
-          }
-        });
-
-        if (line.length > 0) {
-          const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-          tspan.setAttribute("x", "0");
-          tspan.setAttribute("y", startY + (lineCount * lineHeight));
-          tspan.textContent = line.join(" ");
-          text.appendChild(tspan);
-        }
-
-        const totalHeight = Math.max(textHeight, (lineCount) * lineHeight + 20);
-        rect.setAttribute("height", totalHeight.toString());
-      } else {
-        // Leaf text boxes
-        const maxWidth = 135;
-        const boxHeight = 65;
-
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", -maxWidth / 2);
-        rect.setAttribute("y", -boxHeight / 50);
-        rect.setAttribute("width", maxWidth.toString());
-        rect.setAttribute("height", boxHeight.toString());
-        rect.setAttribute("fill", "none");
-        rect.setAttribute("stroke", "black");
-        rect.setAttribute("stroke-width", "1");
-        g.appendChild(rect);
-
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("font-family", "Arial");
-        text.setAttribute("font-size", "14px");
-        g.appendChild(text);
-
-        const words = textContent.split(" ");
-        let line = [];
-        let lineCount = 0;
-        const lineHeight = 15;
-        const startY = 20;
-
-        // Process words into lines
-        words.forEach((word) => {
-          const testLine = line.length === 0 ? word : line.join(" ") + " " + word;
-          const testLineWidth = testLine.length * 8;
-
-          if (testLineWidth > maxWidth - 2) {
-            const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-            tspan.setAttribute("x", "0");
-            tspan.setAttribute("y", startY + (lineCount * lineHeight));
-            tspan.textContent = line.join(" ");
-            text.appendChild(tspan);
-
-            line = [word];
-            lineCount++;
-          } else {
-            line.push(word);
-          }
-        });
-
-        if (line.length > 0) {
-          const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-          tspan.setAttribute("x", "0");
-          tspan.setAttribute("y", startY + (lineCount * lineHeight));
-          tspan.textContent = line.join(" ");
-          text.appendChild(tspan);
-        }
-
-        const totalHeight = Math.max(boxHeight, (lineCount) * lineHeight + 40);
-        rect.setAttribute("height", totalHeight.toString());
-      }
-    }
-
-    return g;
   };
 
   render() {
