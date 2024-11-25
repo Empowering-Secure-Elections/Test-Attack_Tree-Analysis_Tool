@@ -400,7 +400,7 @@ class App extends React.Component {
       if (node.children) {
         for (const child of node.children) {
           const foundNode = getScenarioLeafNode(child, nodeIndex);
-          if (foundNode) return foundNode; // Return as soon as the node is found
+          if (foundNode) return foundNode;
         }
       }
 
@@ -498,12 +498,12 @@ class App extends React.Component {
       getElementBounds(element);
     });
 
-    const margin = 50;
+    const margin = 100;
     const contentWidth = maxX - minX;
     const contentHeight = maxY - minY;
 
-    let width = contentWidth + (margin * 2) + 200;
-    let height = contentHeight + (margin * 2) + 200;
+    let width = contentWidth + (margin * 2);
+    let height = contentHeight + (margin * 2) + 100;
 
     // Center content
     const desiredCenterX = width / 2;
@@ -551,7 +551,7 @@ class App extends React.Component {
     pdf.text(`Scenario #${selectedScenario.key}`, 20, 25);
     pdf.setFontSize(12);
     pdf.setTextColor(0, 0, 0);
-    pdf.text(`Overall scenario o: ${selectedScenario.o}`, 20, 45);
+    pdf.text(`Overall o: ${selectedScenario.o}`, 20, 45);
 
     const lineHeight = 20;
     const leftMargin = 20;
@@ -567,8 +567,8 @@ class App extends React.Component {
 
       pdf.text(node.name, xPosition, yPosition);
       yPosition += lineHeight;
-      pdf.text(`a: ${node.a}, t: ${node.t}, d: ${node.d}`, xPosition + 10, yPosition); // Indent for metrics
-      yPosition += lineHeight + 10; // Add space for next node
+      pdf.text(`a: ${node.a}, t: ${node.t}, d: ${node.d}, o: ${node.o}`, xPosition + 10, yPosition);
+      yPosition += lineHeight + 10;
     });
 
     try {
@@ -595,7 +595,7 @@ class App extends React.Component {
    * Formats the foreign objects for svg. For the pdf export methods.
    * @param {Element} object The foreignObject element to convert
    * @param {boolean} useDataNodeType Whether to use data-node-type attribute for node type detection
-   * @returns {Promise<SVGElement|undefined>} The converted SVG group element
+   * @returns {Promise<SVGElement>} The converted SVG group element
    */
   convertForeignObjectToSvg = async (object, useDataNodeType = false) => {
     const div = object.querySelector('div');
@@ -799,15 +799,14 @@ class App extends React.Component {
           const nodeId = node.getAttribute('data-id') || node.id;
           nodePositions.set(`${coords.x},${coords.y}`, nodeId);
 
-          // Store the complete node information including image details
           const foreignObject = node.querySelector('foreignObject');
           const img = foreignObject?.querySelector('img');
           const nodeInfo = {
             isOperator: node.classList.contains('rd3t-node') && !node.classList.contains('rd3t-leaf-node'),
             content: node.innerHTML,
             foreignObject: foreignObject?.cloneNode(true),
-            imgAlt: img?.alt || null,  // Preserve the alt text of the image
-            imgSrc: img?.src || null   // Preserve the source of the image
+            imgAlt: img?.alt || null,
+            imgSrc: img?.src || null
           };
           preservedNodes.set(nodeId, nodeInfo);
         }
@@ -879,21 +878,19 @@ class App extends React.Component {
           // Restore the preserved node content
           const nodeInfo = preservedNodes.get(nodeId);
           if (nodeInfo) {
-            // Clear existing classes using setAttribute
             element.setAttribute('class', '');
 
-            // Properly restore node type classes using setAttribute
+            // Restore node type classes
             if (nodeInfo.isOperator) {
               element.setAttribute('class', 'rd3t-node');
               element.setAttribute('data-node-type', 'operator');
 
-              // Ensure the foreignObject is properly preserved with the image
+              // Preserve the foreignObject with the image
               if (nodeInfo.foreignObject) {
                 const currentForeignObject = element.querySelector('foreignObject');
                 if (currentForeignObject) {
                   const newForeignObject = nodeInfo.foreignObject.cloneNode(true);
 
-                  // Ensure the image is properly preserved
                   const img = newForeignObject.querySelector('img');
                   if (img && nodeInfo.imgAlt) {
                     img.alt = nodeInfo.imgAlt;
@@ -901,13 +898,11 @@ class App extends React.Component {
                     img.style.display = 'block';
                   }
 
-                  // Transfer node type and image information
                   newForeignObject.setAttribute('data-node-type', 'operator');
                   if (nodeInfo.imgAlt) {
                     newForeignObject.setAttribute('data-img-alt', nodeInfo.imgAlt);
                   }
 
-                  // Preserve any necessary attributes from the original
                   ['transform', 'width', 'height'].forEach(attr => {
                     if (currentForeignObject.hasAttribute(attr)) {
                       newForeignObject.setAttribute(attr,
@@ -1070,7 +1065,7 @@ class App extends React.Component {
               placement="right"
               onClose={this.onClose}
               visible={this.state.visible}
-              width={500}
+              width={550}
             >
               <Button onClick={this.clearSelection}>Clear</Button>
               <Table

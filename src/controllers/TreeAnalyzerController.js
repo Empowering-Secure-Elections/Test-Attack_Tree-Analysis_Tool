@@ -98,7 +98,7 @@ export default class TreeAnalyzerController {
       if (pathSeverity[i]["o"] == -1) {
         pathSeverity[i]["o"] = "N/A";
       } else {
-        pathSeverity[i]["o"] = pathSeverity[i]["o"].toFixed(10); // to output up to 10 decimal places
+        pathSeverity[i]["o"] = pathSeverity[i]["o"].toFixed(8); // to output up to 8 decimal places
       }
       
       if (pathSeverity[i]["a"].length == 0) {
