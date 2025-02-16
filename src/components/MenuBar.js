@@ -15,7 +15,8 @@ import {
   DownloadOutlined,
   FileOutlined,
   FileImageOutlined,
-  FileExcelOutlined
+  FileExcelOutlined,
+  FileTextOutlined
 } from "@ant-design/icons";
 import UIController from "../controllers/UIController";
 import { getByTestId } from "@testing-library/dom";
@@ -45,27 +46,24 @@ class MenuBar extends Component {
   handleClick = (e) => {
     console.log(e);
     switch (e.key) {
-      case "setting:4":
+      case "setting:3":
         Window.map.showRecommendations();
         var message = this.props.enableRecommendation
           ? "Recommendations Disabled"
           : "Recommendations Enabled";
         Window.map.openNotificationWithIcon("success", message, "");
         break;
-      case "setting:2":
+      case "setting:4":
         this.toggleOpened();
         break;
-      case "setting:3":
-        Window.map.exportDSL();
-        break;
-      case "setting:6":
-        this.handleCsvSave();
+      case "setting:5":
+        Window.map.exportTextFile();
         break;
       case "setting:7":
-        this.handleTreePdfSave();
+        this.handleCsvSave();
         break;
-      case "setting:8":
-        Window.map.handleScenarioPdfSave();
+      case "setting:8": 
+        this.handleTreePdfSave();
         break;
     }
   };
@@ -376,46 +374,65 @@ class MenuBar extends Component {
           mode="horizontal"
         >
           <SubMenu key="SubMenu1" icon={<SettingOutlined />} title="File">
-            <Menu.Item key="setting:1" icon={<UploadOutlined />}>
-              <Upload
-                key="upload"
-                accept=".txt"
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  const reader = new FileReader();
-
-                  reader.onload = (e) => {
-                    uiController.getImportedDSL(e.target.result);
-                  };
-                  reader.readAsText(file);
-                  // Prevent upload
-                  return false;
-                }}
-              >
-                <Button>Import DSL</Button>
-              </Upload>
-            </Menu.Item>
-            <Menu.Item key="setting:2" icon={<FileOutlined />}>
+            <SubMenu key="SubMenu3" icon={<UploadOutlined />} title="Import File">
+              <Menu.Item key="setting:1" icon={<FileTextOutlined />}>
+                <Upload
+                  key="upload-dsl"
+                  accept=".txt"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      uiController.getImportedFile(e.target.result);
+                    };
+                    reader.readAsText(file);
+                    // Prevent upload
+                    return false;
+                  }}
+                >
+                  <Button>Import DSL</Button>
+                </Upload>
+              </Menu.Item>
+              <Menu.Item key="setting:2" icon={<FileExcelOutlined />}>
+                <Upload
+                  key="upload-csv"
+                  accept=".csv"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      uiController.getImportedFile(e.target.result);
+                    };
+                    reader.readAsText(file);
+                    // Prevent upload
+                    return false;
+                  }}
+                >
+                  <Button>Import CSV</Button>
+                </Upload>
+              </Menu.Item>
+            </SubMenu>
+            <Menu.Item key="setting:4" icon={<FileOutlined />}>
               Generate Report
             </Menu.Item>
-            <Menu.Item key="setting:3" icon={<DownloadOutlined />}>
-              Export DSL
+            <Menu.Item key="setting:5" icon={<DownloadOutlined />}>
+              Export Text (DSL/CSV)
             </Menu.Item>
-            <Menu.Item key="setting:5" icon={<FileImageOutlined />} onClick={this.handleSvgSave.bind(this)}>
+            <Menu.Item key="setting:6" icon={<FileImageOutlined />} onClick={this.handleSvgSave.bind(this)}>
               Export SVG
             </Menu.Item>
-            <Menu.Item key="setting:6" icon={<FileExcelOutlined />}>
+            <Menu.Item key="setting:7" icon={<FileExcelOutlined />}>
               Export CSV
             </Menu.Item>
-            <Menu.Item key="setting:7" icon={<FileImageOutlined />}>
+            <Menu.Item key="setting:8" icon={<FileImageOutlined />}>
               Export PDF
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">
             {this.props.enableRecommendation ? (
-              <Menu.Item key="setting:4">Disable Recommendations</Menu.Item>
+              <Menu.Item key="setting:3">Disable Recommendations</Menu.Item>
             ) : (
-              <Menu.Item key="setting:4">Enable Recommendations</Menu.Item>
+              <Menu.Item key="setting:3">Enable Recommendations</Menu.Item>
             )}
           </SubMenu>
         </Menu>

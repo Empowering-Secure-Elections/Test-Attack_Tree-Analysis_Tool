@@ -1,6 +1,53 @@
 import TreeAnalyzerController from "./TreeAnalyzerController";
 
 export default class AttackTreeController {
+
+  /**
+   * Parse the input text based on its detected format.
+   * @param {string} text A string to parse.
+   */
+  parseInput(text) {
+    const format = this.detectFormat(text);
+
+    if (format === "DSL") {
+      this.parseDSL(text);
+    } else if (format === "CSV") {
+      this.parseCSV(text);
+    } else {
+      this.showError("Format Error", "Input format is not recognized.", 1);
+    }
+  }
+
+  /**
+   * Determines the format of the input text.
+   * @param {string} text A string to analyze.
+   * @return {string} "DSL", "CSV", or "UNKNOWN".
+   */
+  detectFormat(text) {
+    text = text.trim();
+    if (!text) return "UNKNOWN"; // Empty text case
+
+    const lines = text.split("\n");
+
+    // Check for DSL format
+    if (lines.length > 1 && !lines[0].startsWith("\t") && lines.slice(1).every(line => line.startsWith("\t"))) {
+      return "DSL";
+    }
+
+    // Check for CSV format
+    const csvRegex = /^([^,\n]*,)*[^,\n]*$/;
+    if (lines.length > 1 && lines.every(line => csvRegex.test(line))) {
+      return "CSV";
+    }
+
+    return "UNKNOWN";
+  }
+
+  /**
+   * Checks if the format of DSL input is in the expected tab-indented pattern.
+   * @param {string} text The DSL input to validate.
+   * @returns {Array} Whether the input is valid or not.
+   */
   patternMatch(text) {
     // D3 library also sanitizes input (e.g., won't allow tabs, cleans whitespace).
     const lineRegex = /^(\t*[\W|\w|\s]+)$/g;
@@ -342,4 +389,109 @@ export default class AttackTreeController {
     }
     return output;
   }
+
+  /**
+   * Parses the CSV-formatted text.
+   * @param {string} text - The CSV input.
+   */
+  parseCSV(text) {
+    text = text.trim();
+    if (!text) return;
+
+    try {
+      // Convert CSV to JSON structure
+      const jsonTree = this.convertCSVToJSON(text);
+
+      // Notify user of success
+      Window.map.openNotificationWithIcon(
+        "success",
+        "Tree Generation Successful",
+        ""
+      );
+
+      // Convert JSON to string and set the tree data
+      const output = JSON.stringify(jsonTree);
+      Window.map.setTreeData(output);
+      console.log(output);
+
+      // Analyze the tree and set scenario data
+      const treeAnalyzerController = new TreeAnalyzerController();
+      Window.map.setScenarioData(treeAnalyzerController.analyzeTree(jsonTree));
+
+    } catch (error) {
+      console.error("Error parsing CSV:", error);
+      Window.map.openNotificationWithIcon(
+        "error",
+        "Tree Generation Failed",
+        "Invalid CSV format"
+      );
+    }
+  }
+
+  /**
+   * Converts a CSV string into a JSON structure.
+   * @param {string} text - The CSV input.
+   * @returns {Object} - The root node of the generated JSON tree.
+   */
+  convertCSVToJSON(text) {
+    const lines = text.trim().split("\n");
+    const nodes = new Map();
+    let root = null;
+
+    for (const line of lines) {
+      const parts = line.split(",");
+      const ID = parseInt(parts[0], 10);
+      const parentID = parts[1] ? parseInt(parts[1], 10) : null;
+      const name = parts[2].trim();
+      let type = parts[3]?.trim();
+
+      // Ensure node exists in map
+      if (!nodes.has(ID)) {
+        nodes.set(ID, { ID, name });
+      }
+
+      let node = nodes.get(ID);
+      node.name = name; // Update name in case it was missing before
+
+      if (type === "OR" || type === "AND") {
+        node.operator = type; // Use "operator" instead of "type"
+        node.children = []; // Ensure children array exists for OR/AND nodes
+      } else if (type === "LEAF") {
+        // Handle leaf nodes and optional metrics
+        let o = null, a = null, t = null, d = null;
+        if (parts.length > 4) {
+          o = parts[4] ? parseFloat(parts[4]) : null;
+          a = parts[5] ? parseFloat(parts[5]) : null;
+          t = parts[6] ? parseFloat(parts[6]) : null;
+          d = parts[7] ? parseFloat(parts[7]) : null;
+        }
+
+        if (o !== null && a !== null && t !== null && d !== null) {
+          node.o = o;
+          node.a = a;
+          node.t = t;
+          node.d = d;
+        }
+      }
+
+      // Attach to parent if applicable
+      if (parentID === null) {
+        root = node;
+      } else {
+        if (!nodes.has(parentID)) {
+          nodes.set(parentID, { ID: parentID, children: [] });
+        }
+        let parent = nodes.get(parentID);
+
+        if (!parent.children) {
+          parent.children = []; // Ensure parent has children array
+        }
+
+        parent.children.push(node);
+      }
+    }
+
+    return root;
+  }
+
 }

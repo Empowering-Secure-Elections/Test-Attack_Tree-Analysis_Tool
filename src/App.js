@@ -347,15 +347,15 @@ class App extends React.Component {
     this.instance.setValue(text);
   }
 
-  exportDSL() {
+  exportTextFile() {
     // Checks if scenario data exists which indicates the tree was generated
     if (this.state.scenarioData && this.state.scenarioData.length > 0) {
       var blob = new Blob([this.getTextAreaValue()], {
         type: "text/plain;charset=utf-8",
       });
-      saveAs(blob, "DSL.txt");
+      saveAs(blob, "AttackTreeInput.txt");
     } else {
-      this.openNotificationWithIcon("error", "Generate tree before exporting DSL", "");
+      this.openNotificationWithIcon("error", "Generate tree before exporting DSL/CSV text file", "");
     }
   }
 
@@ -968,7 +968,7 @@ class App extends React.Component {
         generated: true,
       },
       () => {
-        uiController.getInputtedDSL();
+        uiController.getInputtedText();
       }
     );
   };

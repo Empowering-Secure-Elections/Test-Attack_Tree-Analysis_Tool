@@ -1,12 +1,12 @@
 import AttackTreeController from "./AttackTreeController";
 
 export default class UIController {
-  getInputtedDSL() {
+  getInputtedText() {
     const attackTreeController = new AttackTreeController();
-    attackTreeController.parseDSL(Window.map.getTextAreaValue());
+    attackTreeController.parseInput(Window.map.getTextAreaValue());
   }
 
-  getImportedDSL(text) {
+  getImportedFile(text) {
     Window.map.setTextAreaValue(text);
   }
 
