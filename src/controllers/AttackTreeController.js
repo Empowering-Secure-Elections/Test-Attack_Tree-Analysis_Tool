@@ -14,7 +14,11 @@ export default class AttackTreeController {
     } else if (format === "CSV") {
       this.parseCSV(text);
     } else {
-      this.showError("Format Error", "Input format is not recognized.", 1);
+      Window.map.openNotificationWithIcon(
+        "error",
+        "Format Error",
+        "Input format is not recognized"
+      );
     }
   }
 
@@ -128,7 +132,7 @@ export default class AttackTreeController {
     Window.map.openNotificationWithIcon(
       "error",
       title,
-      "Error at line: " + lineNum + "\n" + description
+      "Error at line " + lineNum + ": \n" + description
     );
   }
 
@@ -395,9 +399,131 @@ export default class AttackTreeController {
    * @param {string} text - The CSV input.
    */
   parseCSV(text) {
-    text = text.trim();
-    if (!text) return;
+    const lines = text.trim().split("\n");
+    const nodes = new Map();
+    let rootCount = 0;
+    let hasMetrics = null; // null = undecided, true = must have, false = must not have
 
+    for (let i = 0; i < lines.length; i++) {
+      let result = this.patternMatch(lines[i]);
+      if (result[0] === false) {
+        this.showError(result[1], result[2], i + 1);
+        return;
+      }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const parts = lines[i].split(",");
+      if (parts.length < 4) {
+        this.showError("Invalid Row Format", "Each row must have at least 4 columns (ID, Parent ID, Name, Type).", i + 1);
+        return;
+      }
+
+      // Parse ID
+      const ID = parseInt(parts[0], 10);
+      if (isNaN(ID)) {
+        this.showError("Invalid ID", `Invalid ID '${parts[0]}'.`, i + 1);
+        return;
+      }
+
+      // Parse Parent ID
+      let parentID = parts[1].trim() ? parseInt(parts[1], 10) : null;
+      if (parentID !== null && isNaN(parentID)) {
+        this.showError("Invalid Parent ID", `Invalid Parent ID '${parts[1]}'.`, i + 1);
+        return;
+      }
+
+      // Check if parentID is the same as ID
+      if (parentID !== null && parentID === ID) {
+        this.showError("Invalid Parent Reference", `Node ID ${ID} cannot have itself as a parent.`, i + 1);
+        return;
+      }
+
+      // Used to check how many root nodes exists
+      if (parentID === null) {
+        rootCount++;
+      }
+
+      // Parse Name
+      const name = parts[2].trim();
+      if (!name) {
+        this.showError("Invalid Name", "Node name cannot be blank.", i + 1);
+        return;
+      }
+
+      // Parse Type
+      let type = parts[3].trim();
+      if (!["OR", "AND", "LEAF"].includes(type)) {
+        this.showError("Invalid Node Type", `Invalid node type '${type}'.`, i + 1);
+        return;
+      }
+
+      // Create node object
+      let node = { ID, name };
+      if (type === "OR" || type === "AND") {
+        node.operator = type;
+        node.children = [];
+      } else if (type === "LEAF") {
+        let o = parts[4] ? parseFloat(parts[4]) : null;
+        let a = parts[5] ? parseFloat(parts[5]) : null;
+        let t = parts[6] ? parseFloat(parts[6]) : null;
+        let d = parts[7] ? parseFloat(parts[7]) : null;
+
+        // Check if some but not all metrics are listed
+        const metrics = [o, a, t, d];
+        const hasAnyMetric = metrics.some(m => m !== null);
+        const hasAllMetrics = metrics.every(m => m !== null);
+        if (hasAnyMetric && !hasAllMetrics) {
+          this.showError("Incomplete Metrics", "Either no metrics or all four metrics (o, a, t, d) must be listed.", i + 1);
+          return;
+        }
+
+        // Validate the all-or-none rule for leaf node metrics
+        let hasCurrentMetrics = o !== null || a !== null || t !== null || d !== null;
+        if (hasMetrics === null) {
+          hasMetrics = hasCurrentMetrics; // Set initial state
+        } else if (hasMetrics !== hasCurrentMetrics) {
+          this.showError("Inconsistent Metrics", "Either all or no leaf nodes should have metrics listed.", i + 1);
+          return;
+        }
+
+        // If using metrics, ensure they are all valid numbers
+        if (hasMetrics) {
+          if (isNaN(o) || isNaN(a) || isNaN(t) || isNaN(d)) {
+            this.showError("Invalid Metrics", "Metrics must be numbers.", i + 1);
+            return;
+          }
+          node.o = o;
+          node.a = a;
+          node.t = t;
+          node.d = d;
+        }
+      }
+
+      nodes.set(ID, node);
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const parts = lines[i].split(",");
+      const ID = parseInt(parts[0], 10);
+      let parentID = parts[1].trim() ? parseInt(parts[1], 10) : null;
+
+      if (parentID !== null && !nodes.has(parentID)) {
+        this.showError("Invalid Parent Reference", `Parent ID ${parentID} does not match any existing node ID.`, i + 1);
+        return;
+      }
+    }
+
+    // Checks if there is one root node
+    if (rootCount === 0) {
+      this.showError("No Root Node", "There must be one root node (a node without a Parent ID).", 1);
+      return;
+    } else if (rootCount > 1) {
+      this.showError("Multiple Root Nodes", "There can only be one root node (a node without a Parent ID).", 1);
+      return;
+    }
+
+    text = text.trim();
     try {
       // Convert CSV to JSON structure
       const jsonTree = this.convertCSVToJSON(text);
