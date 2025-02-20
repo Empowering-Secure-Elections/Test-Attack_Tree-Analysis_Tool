@@ -7,7 +7,7 @@ export default class AttackTreeController {
    * @param {string} text A string to parse.
    */
   parseInput(text) {
-    const format = this.detectFormat(text);
+    const format = Window.map.detectFormat(text);
 
     if (format === "DSL") {
       this.parseDSL(text);
@@ -20,31 +20,6 @@ export default class AttackTreeController {
         "Input format is not recognized"
       );
     }
-  }
-
-  /**
-   * Determines the format of the input text.
-   * @param {string} text A string to analyze.
-   * @return {string} "DSL", "CSV", or "UNKNOWN".
-   */
-  detectFormat(text) {
-    text = text.trim();
-    if (!text) return "UNKNOWN"; // Empty text case
-
-    const lines = text.split("\n");
-
-    // Check for DSL format
-    if (lines.length > 1 && !lines[0].startsWith("\t") && lines.slice(1).every(line => line.startsWith("\t"))) {
-      return "DSL";
-    }
-
-    // Check for CSV format
-    const csvRegex = /^([^,\n]*,)*[^,\n]*$/;
-    if (lines.length > 1 && lines.every(line => csvRegex.test(line))) {
-      return "CSV";
-    }
-
-    return "UNKNOWN";
   }
 
   /**

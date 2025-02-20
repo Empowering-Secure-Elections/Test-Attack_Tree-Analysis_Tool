@@ -330,6 +330,10 @@ class App extends React.Component {
     );
   }
 
+  getTreeData() {
+    return this.state.treeData;
+  }
+
   showRecommendations() {
     this.setState({ showRecommendations: !this.state.showRecommendations });
     console.log(this.state.showRecommendations);
@@ -347,16 +351,29 @@ class App extends React.Component {
     this.instance.setValue(text);
   }
 
-  exportTextFile() {
-    // Checks if scenario data exists which indicates the tree was generated
-    if (this.state.scenarioData && this.state.scenarioData.length > 0) {
-      var blob = new Blob([this.getTextAreaValue()], {
-        type: "text/plain;charset=utf-8",
-      });
-      saveAs(blob, "AttackTreeInput.txt");
-    } else {
-      this.openNotificationWithIcon("error", "Generate tree before exporting DSL/CSV text file", "");
+  /**
+    * Determines the format of the text.
+    * @param {string} text A string to analyze.
+    * @return {string} "DSL", "CSV", or "UNKNOWN".
+    */
+  detectFormat(text) {
+    text = text.trim();
+    if (!text) return "UNKNOWN"; // Empty text case
+
+    const lines = text.split("\n");
+
+    // Check for DSL format
+    if (lines.length > 1 && !lines[0].startsWith("\t") && lines.slice(1).every(line => line.startsWith("\t"))) {
+      return "DSL";
     }
+
+    // Check for CSV format
+    const csvRegex = /^([^,\n]*,)*[^,\n]*$/;
+    if (lines.length > 1 && lines.every(line => csvRegex.test(line))) {
+      return "CSV";
+    }
+
+    return "UNKNOWN";
   }
 
   /**

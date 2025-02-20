@@ -57,13 +57,16 @@ class MenuBar extends Component {
         this.toggleOpened();
         break;
       case "setting:5":
-        Window.map.exportTextFile();
+        this.exportDslInput();
         break;
-      case "setting:7":
-        this.handleCsvSave();
+      case "setting:6":
+        this.exportCsvInput();
         break;
       case "setting:8": 
         this.handleTreePdfSave();
+        break;
+      case "setting:9":
+        this.handleScenariosCsvSave();
         break;
     }
   };
@@ -107,7 +110,7 @@ class MenuBar extends Component {
   * the second column is the overall likelihood of that scenario, 
   * the third column is the path of nodes of the scenario.
   */
-  handleCsvSave = () => {
+  handleScenariosCsvSave = () => {
     // Checks to see if there are scenarios
     if (this.props.scenarioData && this.props.scenarioData.length > 0) {
       const fileContent = this.props.scenarioData.map((scenario) => {
@@ -123,6 +126,146 @@ class MenuBar extends Component {
       Window.map.openNotificationWithIcon("error", "Generate tree before exporting CSV file", "");
     }
   };
+
+  /**
+   * Exports the attack tree data in DSL format.
+   */
+  exportDslInput() {
+    // Checks if scenario data exists which indicates the tree was generated
+    if (this.props.scenarioData && this.props.scenarioData.length > 0) {
+      const format = Window.map.detectFormat(Window.map.getTextAreaValue());
+      var fileContent;
+
+      if (format === "DSL") {
+        fileContent = Window.map.getTextAreaValue();
+      } else if (format === "CSV") {
+        try {
+          fileContent = this.convertJsonToDsl(Window.map.getTreeData());
+        } catch (error) {
+          Window.map.openNotificationWithIcon("error", "Failed to convert to DSL", "");
+          return;
+        }
+      } else {
+        Window.map.openNotificationWithIcon("error", "Unrecognized input text format", "");
+        return;
+      }
+
+      var blob = new Blob([fileContent], {
+        type: "text/plain;charset=utf-8",
+      });
+      saveAs(blob, "AttackTreeInput.txt");
+    } else {
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting DSL input file", "");
+    }
+  }
+
+  /**
+   * Converts JSON attack tree data into DSL format.
+   * @param {Object} jsonData - JSON representation of the attack tree.
+   * @return {string} DSL formatted string.
+   */
+  convertJsonToDsl(jsonData) {
+    let dslLines = [];
+
+    function traverse(node, indent = "") {
+      const { name, operator, o, a, t, d, children = [] } = node;
+      const type = children.length > 0 
+        ? (operator ? operator : (() => { throw new Error(`Operator missing for node: ${name}`) }))
+        : "LEAF"; // Default to LEAF if no children
+
+      let line = `${indent}${name}`;
+
+      if (type === "LEAF") {
+        if (o !== undefined && a !== undefined && t !== undefined && d !== undefined) {
+          line += `;o=${o};a=${a};t=${t};d=${d}`;
+        }
+      } else {
+        line += `;${type}`;
+      }
+
+      dslLines.push(line);
+
+      for (const child of children) {
+        traverse(child, indent + "\t");
+      }
+    }
+
+    try {
+      traverse(jsonData);
+    } catch (error) {
+      Window.map.openNotificationWithIcon("error", "Format Error", error.message);
+    }
+
+    return dslLines.join("\n");
+  }
+
+  /**
+   * Exports the attack tree data in CSV format.
+   */
+  exportCsvInput() {
+    // Checks if scenario data exists which indicates the tree was generated
+    if (this.props.scenarioData && this.props.scenarioData.length > 0) {
+      const format = Window.map.detectFormat(Window.map.getTextAreaValue());
+      var fileContent;
+
+      if (format === "DSL") {
+        try {
+          fileContent = this.convertJsonToCsv(Window.map.getTreeData());
+        } catch (error) {
+          Window.map.openNotificationWithIcon("error", "Failed to convert to CSV", "");
+          return;
+        }
+      } else if (format === "CSV") {
+        fileContent = Window.map.getTextAreaValue();
+      } else {
+        Window.map.openNotificationWithIcon("error", "Unrecognized input text format", "");
+        return;
+      }
+
+      var blob = new Blob([fileContent], {
+        type: "text/csv;charset=utf-8",
+      });
+      saveAs(blob, "AttackTreeInput.csv");
+    } else {
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting CSV input file", "");
+    }
+  }
+
+  /**
+   * Converts JSON attack tree data into CSV format.
+   * @param {Object} jsonData - JSON representation of the attack tree.
+   * @return {string} CSV formatted string.
+   */
+  convertJsonToCsv(jsonData) {
+    let csvLines = [];
+
+    function traverse(node, parentID = "") {
+      const { ID, name, operator, o, a, t, d, children = [] } = node;
+      const type = children.length > 0
+        ? (operator ? operator : (() => { throw new Error(`Operator missing for node: ${name}`) }))
+        : "LEAF"; // Default to LEAF if no children
+
+      let line = `${ID},${parentID},${name},${type}`;
+
+      if (type === "LEAF" && o !== undefined && a !== undefined && t !== undefined && d !== undefined) {
+        line += `,${o},${a},${t},${d}`;
+      }
+
+      csvLines.push(line);
+
+      for (const child of children) {
+        traverse(child, ID);
+      }
+    }
+
+    try {
+      traverse(jsonData);
+    } catch (error) {
+      Window.map.openNotificationWithIcon("error", "Format Error", error.message);
+    }
+
+    return csvLines.join("\n");
+  }
 
   toggleOpened = () => {
     // Checks if scenario data exists which indicates the tree was generated
@@ -415,17 +558,22 @@ class MenuBar extends Component {
             <Menu.Item key="setting:4" icon={<FileOutlined />}>
               Generate Report
             </Menu.Item>
-            <Menu.Item key="setting:5" icon={<DownloadOutlined />}>
-              Export Text (DSL/CSV)
-            </Menu.Item>
-            <Menu.Item key="setting:6" icon={<FileImageOutlined />} onClick={this.handleSvgSave.bind(this)}>
+            <SubMenu key="SubMenu4" icon={<DownloadOutlined />} title="Export Input File">
+              <Menu.Item key="setting:5" icon={<FileTextOutlined />}>
+                Export DSL Input
+              </Menu.Item>
+              <Menu.Item key="setting:6" icon={<FileExcelOutlined />}>
+                Export CSV Input
+              </Menu.Item>
+            </SubMenu>
+            <Menu.Item key="setting:7" icon={<FileImageOutlined />} onClick={this.handleSvgSave.bind(this)}>
               Export SVG
-            </Menu.Item>
-            <Menu.Item key="setting:7" icon={<FileExcelOutlined />}>
-              Export CSV
             </Menu.Item>
             <Menu.Item key="setting:8" icon={<FileImageOutlined />}>
               Export PDF
+            </Menu.Item>
+            <Menu.Item key="setting:9" icon={<FileExcelOutlined />}>
+              Export Scenarios CSV
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">
