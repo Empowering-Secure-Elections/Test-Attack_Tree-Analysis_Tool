@@ -134,7 +134,7 @@ export default class AttackTreeController {
     var identifier = 0;
 
     //regex for node syntax
-    const nodeRegex = /\w+;(OR|AND)$/g;
+    const nodeRegex = /^[\w\s"'\/\-()!@#$%&*~+_=?.,]+;(OR|AND)$/g;
 
     //stacks
     var squareBrackets = [];
@@ -164,7 +164,7 @@ export default class AttackTreeController {
         // stop execution
       }
       //check for metrics
-      output += '"name":"' + second_split[0] + '"';
+      output += '"name":"' + this.escapeQuotes(second_split[0]) + '"';
       let metrics_map = this.getLeafMetrics(second_split);
       //iterate over key, value pairs in metrics mapping
       for (const [key, value] of Object.entries(metrics_map)) {
@@ -182,7 +182,7 @@ export default class AttackTreeController {
       }
       output +=
         '"name":"' +
-        second_split[0] +
+        this.escapeQuotes(second_split[0]) +
         '", "operator":"' +
         second_split[1] +
         '"';
@@ -244,7 +244,7 @@ export default class AttackTreeController {
             // stop execution
           }
           //check for metrics
-          output += '"name":"' + second_split[0] + '"';
+          output += '"name":"' + this.escapeQuotes(second_split[0]) + '"';
           let metrics_map = this.getLeafMetrics(second_split);
           //iterate over key, value pairs in metrics mapping
           for (const [key, value] of Object.entries(metrics_map)) {
@@ -270,7 +270,7 @@ export default class AttackTreeController {
           }
           output +=
             '"name":"' +
-            second_split[0] +
+            this.escapeQuotes(second_split[0]) +
             '","operator":"' +
             second_split[1] +
             '"';
@@ -284,7 +284,7 @@ export default class AttackTreeController {
           // stop execution
         }
         //check for metrics
-        output += '"name":"' + second_split[0] + '"';
+        output += '"name":"' + this.escapeQuotes(second_split[0]) + '"';
         let metrics_map = this.getLeafMetrics(second_split);
         //iterate over key, value pairs in metrics mapping
         for (const [key, value] of Object.entries(metrics_map)) {
@@ -316,6 +316,15 @@ export default class AttackTreeController {
     Window.map.setScenarioData(treeAnalyzerController.analyzeTree(
       JSON.parse(output)
     ));
+  }
+
+  /**
+   * Escapes any existing quotes in a DSL string.
+   * @param {string} str - The string value to be escaped for DSL.
+   * @return {string} The escaped DSL value.
+   */
+  escapeDslQuotes(str) {
+    return str.replace(/"/g, '\\"');
   }
 
   /**
@@ -388,7 +397,7 @@ export default class AttackTreeController {
     }
 
     for (let i = 0; i < lines.length; i++) {
-      const parts = lines[i].split(",");
+      const parts = this.parseCsvLine(lines[i]);
       if (parts.length < 4) {
         this.showError("Invalid Row Format", "Each row must have at least 4 columns (ID, Parent ID, Name, Type).", i + 1);
         return;
@@ -479,8 +488,7 @@ export default class AttackTreeController {
     }
 
     for (let i = 0; i < lines.length; i++) {
-      const parts = lines[i].split(",");
-      const ID = parseInt(parts[0], 10);
+      const parts = this.parseCsvLine(lines[i]);
       let parentID = parts[1].trim() ? parseInt(parts[1], 10) : null;
 
       if (parentID !== null && !nodes.has(parentID)) {
@@ -540,10 +548,10 @@ export default class AttackTreeController {
     let root = null;
 
     for (const line of lines) {
-      const parts = line.split(",");
+      const parts = this.parseCsvLine(line);
       const ID = parseInt(parts[0], 10);
       const parentID = parts[1] ? parseInt(parts[1], 10) : null;
-      const name = parts[2].trim();
+      const name = parts[2];
       let type = parts[3]?.trim();
 
       // Ensure node exists in map
@@ -593,6 +601,51 @@ export default class AttackTreeController {
     }
 
     return root;
+  }
+
+  /**
+   * Parses a single CSV line into an array of values.
+   * @param {string} line - The CSV line to be parsed.
+   * @return {Array} An array of parsed values from the CSV line.
+   */
+  parseCsvLine(line) {
+    const values = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      let char = line[i];
+
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          // Handle escaped quote ("" -> ")
+          current += '"';
+          i++; // Skip next quote
+        } else {
+          inQuotes = !inQuotes; // Toggle quote mode
+        }
+      } else if (char === ',' && !inQuotes) {
+        values.push(this.unescapeCsvValue(current));
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+
+    values.push(this.unescapeCsvValue(current));
+    return values;
+  }
+
+  /**
+   * Unescapes a CSV value.
+   * @param {string} value - The CSV value to be unescaped.
+   * @return {string} The unescaped value.
+   */
+  unescapeCsvValue(value) {
+    if (value.startsWith('"') && value.endsWith('"')) {
+      return value.slice(1, -1).replace(/""/g, '"'); // Remove surrounding quotes & restore inner quotes
+    }
+    return value.replace(/""/g, '"'); // Just restore escaped quotes if no surrounding quotes
   }
 
 }

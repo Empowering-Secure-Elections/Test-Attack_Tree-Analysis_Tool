@@ -239,13 +239,14 @@ class MenuBar extends Component {
   convertJsonToCsv(jsonData) {
     let csvLines = [];
 
-    function traverse(node, parentID = "") {
+    const traverse = (node, parentID = "") => {
       const { ID, name, operator, o, a, t, d, children = [] } = node;
       const type = children.length > 0
         ? (operator ? operator : (() => { throw new Error(`Operator missing for node: ${name}`) }))
         : "LEAF"; // Default to LEAF if no children
 
-      let line = `${ID},${parentID},${name},${type}`;
+      const csvFriendlyName = this.escapeCsvValue(name);
+      let line = `${ID},${parentID},${csvFriendlyName},${type}`;
 
       if (type === "LEAF" && o !== undefined && a !== undefined && t !== undefined && d !== undefined) {
         line += `,${o},${a},${t},${d}`;
@@ -265,6 +266,20 @@ class MenuBar extends Component {
     }
 
     return csvLines.join("\n");
+  }
+
+  /**
+   * Escapes special characters in CSV values.
+   * @param {string} value - The value to be escaped for CSV.
+   * @return {string} The escaped CSV value.
+   */
+  escapeCsvValue(value) {
+    if (typeof value === "string") {
+      if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+        return `"${value.replace(/"/g, '""')}"`; // Wrap in quotes and escape existing quotes
+      }
+    }
+    return value;
   }
 
   toggleOpened = () => {
