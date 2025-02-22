@@ -164,7 +164,7 @@ export default class AttackTreeController {
         // stop execution
       }
       //check for metrics
-      output += '"name":"' + this.escapeQuotes(second_split[0]) + '"';
+      output += '"name":"' + this.escapeDslQuotes(second_split[0]) + '"';
       let metrics_map = this.getLeafMetrics(second_split);
       //iterate over key, value pairs in metrics mapping
       for (const [key, value] of Object.entries(metrics_map)) {
@@ -182,7 +182,7 @@ export default class AttackTreeController {
       }
       output +=
         '"name":"' +
-        this.escapeQuotes(second_split[0]) +
+        this.escapeDslQuotes(second_split[0]) +
         '", "operator":"' +
         second_split[1] +
         '"';
@@ -244,7 +244,7 @@ export default class AttackTreeController {
             // stop execution
           }
           //check for metrics
-          output += '"name":"' + this.escapeQuotes(second_split[0]) + '"';
+          output += '"name":"' + this.escapeDslQuotes(second_split[0]) + '"';
           let metrics_map = this.getLeafMetrics(second_split);
           //iterate over key, value pairs in metrics mapping
           for (const [key, value] of Object.entries(metrics_map)) {
@@ -270,7 +270,7 @@ export default class AttackTreeController {
           }
           output +=
             '"name":"' +
-            this.escapeQuotes(second_split[0]) +
+            this.escapeDslQuotes(second_split[0]) +
             '","operator":"' +
             second_split[1] +
             '"';
@@ -284,7 +284,7 @@ export default class AttackTreeController {
           // stop execution
         }
         //check for metrics
-        output += '"name":"' + this.escapeQuotes(second_split[0]) + '"';
+        output += '"name":"' + this.escapeDslQuotes(second_split[0]) + '"';
         let metrics_map = this.getLeafMetrics(second_split);
         //iterate over key, value pairs in metrics mapping
         for (const [key, value] of Object.entries(metrics_map)) {
@@ -383,8 +383,10 @@ export default class AttackTreeController {
    * @param {string} text - The CSV input.
    */
   parseCSV(text) {
-    const lines = text.trim().split("\n");
+    text = text.trim();
+    const lines = text.split("\n");
     const nodes = new Map();
+    const seenIDs = new Set();
     let rootCount = 0;
     let hasMetrics = null; // null = undecided, true = must have, false = must not have
 
@@ -398,28 +400,38 @@ export default class AttackTreeController {
 
     for (let i = 0; i < lines.length; i++) {
       const parts = this.parseCsvLine(lines[i]);
-      if (parts.length < 4) {
-        this.showError("Invalid Row Format", "Each row must have at least 4 columns (ID, Parent ID, Name, Type).", i + 1);
+      if (parts.length < 3) {
+        this.showError("Invalid Row Format", "Each row must have at least 3 columns (Type, ID, Name).", i + 1);
         return;
       }
 
-      // Parse ID
-      const ID = parseInt(parts[0], 10);
-      if (isNaN(ID)) {
-        this.showError("Invalid ID", `Invalid ID '${parts[0]}'.`, i + 1);
+      const type = parts[0].trim();
+      const ID = parts[1].trim();
+      const name = parts[2].trim();
+      const parentID = ID.includes(".") ? ID.substring(0, ID.lastIndexOf(".")) : null;
+
+      // Check node type
+      if (!["O", "A", "T"].includes(type)) {
+        this.showError("Invalid Node Type", `Invalid node type '${type}'.`, i + 1);
         return;
       }
 
-      // Parse Parent ID
-      let parentID = parts[1].trim() ? parseInt(parts[1], 10) : null;
-      if (parentID !== null && isNaN(parentID)) {
-        this.showError("Invalid Parent ID", `Invalid Parent ID '${parts[1]}'.`, i + 1);
+      // Check ID format
+      if (!/^[0-9]+(\.[0-9]+)*$/.test(ID)) {
+        this.showError("Invalid ID Format", `Invalid node ID '${ID}'.`, i + 1);
         return;
       }
 
-      // Check if parentID is the same as ID
-      if (parentID !== null && parentID === ID) {
-        this.showError("Invalid Parent Reference", `Node ID ${ID} cannot have itself as a parent.`, i + 1);
+      // Check for duplicate IDs
+      if (seenIDs.has(ID)) {
+        this.showError("Duplicate ID", `ID '${ID}' is used more than once.`, i + 1);
+        return;
+      }
+      seenIDs.add(ID);
+
+      // Check for blank name
+      if (name === "") {
+        this.showError("Invalid Name", "Name cannot be blank.", i + 1);
         return;
       }
 
@@ -428,32 +440,23 @@ export default class AttackTreeController {
         rootCount++;
       }
 
-      // Parse Name
-      const name = parts[2].trim();
-      if (!name) {
-        this.showError("Invalid Name", "Node name cannot be blank.", i + 1);
-        return;
-      }
-
-      // Parse Type
-      let type = parts[3].trim();
-      if (!["OR", "AND", "LEAF"].includes(type)) {
-        this.showError("Invalid Node Type", `Invalid node type '${type}'.`, i + 1);
-        return;
-      }
-
       // Create node object
       let node = { ID, name };
-      if (type === "OR" || type === "AND") {
-        node.operator = type;
+      if (type === "O" || type === "A") {
+        if (type === "O") {
+          node.operator = "OR"
+        } else if (type === "A") {
+          node.operator = "AND"
+        }
         node.children = [];
-      } else if (type === "LEAF") {
-        let o = parts[4] ? parseFloat(parts[4]) : null;
-        let a = parts[5] ? parseFloat(parts[5]) : null;
-        let t = parts[6] ? parseFloat(parts[6]) : null;
-        let d = parts[7] ? parseFloat(parts[7]) : null;
+      } else if (type === "T") {
+        let o = parts[3] ? parseFloat(parts[3]) : null;
+        let a = parts[4] ? parseFloat(parts[4]) : null;
+        let t = parts[5] ? parseFloat(parts[5]) : null;
+        let d = parts[6] ? parseFloat(parts[6]) : null;
 
-        // Check if some but not all metrics are listed
+        // TODO should this be enforced here?
+        // Check if some but not all metrics are listed 
         const metrics = [o, a, t, d];
         const hasAnyMetric = metrics.some(m => m !== null);
         const hasAllMetrics = metrics.every(m => m !== null);
@@ -487,53 +490,54 @@ export default class AttackTreeController {
       nodes.set(ID, node);
     }
 
-    for (let i = 0; i < lines.length; i++) {
-      const parts = this.parseCsvLine(lines[i]);
-      let parentID = parts[1].trim() ? parseInt(parts[1], 10) : null;
+    for (let [ID, node] of nodes) {
+      const parentID = ID.includes(".") ? ID.substring(0, ID.lastIndexOf(".")) : null;
+      
+      if (parentID !== null) {
+        // Check if the parent node exists
+        if (!nodes.has(parentID)) {
+          this.showError("Invalid Parent Reference", `Parent ID ${parentID} does not match any existing node ID.`);
+          return;
+        }
+        let parent = nodes.get(parentID);
 
-      if (parentID !== null && !nodes.has(parentID)) {
-        this.showError("Invalid Parent Reference", `Parent ID ${parentID} does not match any existing node ID.`, i + 1);
+        // Check if the parent is a leaf node (which should not have children)
+        if (parent.operator !== "AND" && parent.operator !== "OR") {
+          this.showError("Invalid Child Assignment", `Terminal/leaf node '${parentID}' cannot have children.`);
+          return;
+        }
+
+        parent.children.push(node);
+      }
+    }
+
+    // Check that all AND/OR nodes have at least one child
+    for (let node of nodes.values()) {
+      if ((node.operator === "AND" || node.operator === "OR") && node.children.length === 0) {
+        this.showError("Missing Children", `${node.operator} node '${node.ID}' must have at least one child.`);
         return;
       }
     }
 
     // Checks if there is one root node
-    if (rootCount === 0) {
-      this.showError("No Root Node", "There must be one root node (a node without a Parent ID).", 1);
-      return;
-    } else if (rootCount > 1) {
-      this.showError("Multiple Root Nodes", "There can only be one root node (a node without a Parent ID).", 1);
+    if (rootCount !== 1) {
+      this.showError("Root Node Error", "There can only be one root node.");
       return;
     }
 
-    text = text.trim();
     try {
-      // Convert CSV to JSON structure
-      const jsonTree = this.convertCSVToJSON(text);
-
-      // Notify user of success
-      Window.map.openNotificationWithIcon(
-        "success",
-        "Tree Generation Successful",
-        ""
-      );
-
-      // Convert JSON to string and set the tree data
-      const output = JSON.stringify(jsonTree);
+      const root = [...nodes.values()].find(n => !n.ID.includes("."));
+      const output = JSON.stringify(root);
       Window.map.setTreeData(output);
-      console.log(output);
+      console.log(output)
 
-      // Analyze the tree and set scenario data
       const treeAnalyzerController = new TreeAnalyzerController();
-      Window.map.setScenarioData(treeAnalyzerController.analyzeTree(jsonTree));
+      Window.map.setScenarioData(treeAnalyzerController.analyzeTree(root));
 
+      Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
     } catch (error) {
       console.error("Error parsing CSV:", error);
-      Window.map.openNotificationWithIcon(
-        "error",
-        "Tree Generation Failed",
-        "Invalid CSV format"
-      );
+      Window.map.openNotificationWithIcon("error", "Tree Generation Failed", "Invalid CSV format");
     }
   }
 
@@ -549,10 +553,15 @@ export default class AttackTreeController {
 
     for (const line of lines) {
       const parts = this.parseCsvLine(line);
-      const ID = parseInt(parts[0], 10);
-      const parentID = parts[1] ? parseInt(parts[1], 10) : null;
-      const name = parts[2];
-      let type = parts[3]?.trim();
+
+      if (parts.length < 3) {
+        throw new Error("Invalid CSV format: Each row must have at least 3 columns (Type, ID, Name).");
+      }
+
+      const type = parts[0].trim(); // First column is node type (A, O, T)
+      const ID = parts[1].trim(); // Second column is hierarchical ID
+      const name = parts[2].trim(); // Third column is node name
+      const parentID = ID.includes(".") ? ID.substring(0, ID.lastIndexOf(".")) : null; // Extract parent ID
 
       // Ensure node exists in map
       if (!nodes.has(ID)) {
@@ -560,22 +569,23 @@ export default class AttackTreeController {
       }
 
       let node = nodes.get(ID);
-      node.name = name; // Update name in case it was missing before
+      node.name = name;
 
-      if (type === "OR" || type === "AND") {
-        node.operator = type; // Use "operator" instead of "type"
-        node.children = []; // Ensure children array exists for OR/AND nodes
-      } else if (type === "LEAF") {
-        // Handle leaf nodes and optional metrics
-        let o = null, a = null, t = null, d = null;
-        if (parts.length > 4) {
-          o = parts[4] ? parseFloat(parts[4]) : null;
-          a = parts[5] ? parseFloat(parts[5]) : null;
-          t = parts[6] ? parseFloat(parts[6]) : null;
-          d = parts[7] ? parseFloat(parts[7]) : null;
+      if (type === "O" || type === "A") {
+        if (type === "O") {
+          node.operator = "OR"
+        } else if (type === "A") {
+          node.operator = "AND"
         }
+        node.children = [];
+      } else if (type === "T") {
+        // Handle leaf nodes and optional metrics
+        let o = parts[3] ? parseFloat(parts[3]) : null;
+        let a = parts[4] ? parseFloat(parts[4]) : null;
+        let t = parts[5] ? parseFloat(parts[5]) : null;
+        let d = parts[6] ? parseFloat(parts[6]) : null;
 
-        if (o !== null && a !== null && t !== null && d !== null) {
+        if ([o, a, t, d].some(m => m !== null)) {
           node.o = o;
           node.a = a;
           node.t = t;

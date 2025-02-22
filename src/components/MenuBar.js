@@ -239,25 +239,39 @@ class MenuBar extends Component {
   convertJsonToCsv(jsonData) {
     let csvLines = [];
 
-    const traverse = (node, parentID = "") => {
-      const { ID, name, operator, o, a, t, d, children = [] } = node;
-      const type = children.length > 0
-        ? (operator ? operator : (() => { throw new Error(`Operator missing for node: ${name}`) }))
-        : "LEAF"; // Default to LEAF if no children
+    const traverse = (node, parentID = "", childIndex = 1) => {
+      const { name, operator, o, a, t, d, children = [] } = node;
 
+      // Compute hierarchical ID
+      const nodeID = parentID ? `${parentID}.${childIndex}` : "1";
+
+      // Determine node type mapping
+      let type;
+      if (children.length > 0) {
+        if (!operator) {
+          throw new Error(`Operator missing for node: ${name}`);
+        }
+        type = operator === "AND" ? "A" : operator === "OR" ? "O" : "Unknown";
+      } else {
+        type = "T"; // Leaf node
+      }
+
+      // Format CSV line
       const csvFriendlyName = this.escapeCsvValue(name);
-      let line = `${ID},${parentID},${csvFriendlyName},${type}`;
+      let line = `${type},${nodeID},${csvFriendlyName}`;
 
-      if (type === "LEAF" && o !== undefined && a !== undefined && t !== undefined && d !== undefined) {
+      // Append metrics if it's a leaf node
+      if (type === "T" && o !== undefined && a !== undefined && t !== undefined && d !== undefined) {
         line += `,${o},${a},${t},${d}`;
       }
 
       csvLines.push(line);
 
-      for (const child of children) {
-        traverse(child, ID);
-      }
-    }
+      // Recursively process children with correct numbering
+      children.forEach((child, index) => {
+        traverse(child, nodeID, index + 1);
+      });
+    };
 
     try {
       traverse(jsonData);
