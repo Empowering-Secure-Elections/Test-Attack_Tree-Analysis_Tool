@@ -602,7 +602,7 @@ class MenuBar extends Component {
               Export PDF
             </Menu.Item>
             <Menu.Item key="setting:9" icon={<FileExcelOutlined />}>
-              Export Scenarios CSV
+              Export Scenarios
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">

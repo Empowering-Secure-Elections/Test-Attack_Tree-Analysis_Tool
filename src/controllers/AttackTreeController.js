@@ -134,7 +134,7 @@ export default class AttackTreeController {
     var identifier = 0;
 
     //regex for node syntax
-    const nodeRegex = /^[\w\s"'\/\-()!@#$%&*~+_=?.,]+;(OR|AND)$/g;
+    const nodeRegex = /^[\w\s"'“”‘’\/\-()!@#$%&*~+_=?.,]+;(OR|AND)$/g;
 
     //stacks
     var squareBrackets = [];
@@ -390,6 +390,29 @@ export default class AttackTreeController {
     let rootCount = 0;
     let hasMetrics = null; // null = undecided, true = must have, false = must not have
 
+    // Detect if the first line contains weights
+    let weightA = 0.33, weightT = 0.33, weightD = 0.33; // Default weights
+    if (lines.length > 0) {
+      const firstLineParts = this.parseCsvLine(lines[0]);
+      if (firstLineParts.length === 3 &&
+        !isNaN(parseFloat(firstLineParts[0])) &&
+        !isNaN(parseFloat(firstLineParts[1])) &&
+        !isNaN(parseFloat(firstLineParts[2]))) {
+        // Set weights and remove the first line from processing
+        weightA = parseFloat(firstLineParts[0]);
+        weightT = parseFloat(firstLineParts[1]);
+        weightD = parseFloat(firstLineParts[2]);
+        lines.shift();
+      }
+    }
+
+    // Validate that weights sum to approximately 1 (with a 0.05 margin of error)
+    const totalWeight = weightA + weightT + weightD;
+    if (totalWeight < 0.95 || totalWeight > 1.05) {
+      this.showError("Invalid Weights", `The sum of weights must be approximately 1 (with a 0.05 margin of error). Found: ${totalWeight.toFixed(2)}.`, 1);
+      return;
+    }
+
     for (let i = 0; i < lines.length; i++) {
       let result = this.patternMatch(lines[i]);
       if (result[0] === false) {
@@ -443,32 +466,36 @@ export default class AttackTreeController {
       // Create node object
       let node = { ID, name };
       if (type === "O" || type === "A") {
-        if (type === "O") {
-          node.operator = "OR"
-        } else if (type === "A") {
-          node.operator = "AND"
-        }
+        node.operator = type === "O" ? "OR" : "AND";
         node.children = [];
       } else if (type === "T") {
-        let o = parts[3] ? parseFloat(parts[3]) : null;
-        let a = parts[4] ? parseFloat(parts[4]) : null;
-        let t = parts[5] ? parseFloat(parts[5]) : null;
-        let d = parts[6] ? parseFloat(parts[6]) : null;
+        let o = null, a = null, t = null, d = null;
 
-        // TODO should this be enforced here?
+        if (parts.length === 7) {
+          o = parseFloat(parts[3]);
+          a = parseFloat(parts[4]);
+          t = parseFloat(parts[5]);
+          d = parseFloat(parts[6]);
+        } else if (parts.length === 6) {
+          a = parseFloat(parts[3]);
+          t = parseFloat(parts[4]);
+          d = parseFloat(parts[5]);
+          o = this.calculateMetricO(a, t, d, weightA, weightT, weightD);
+        }
+
         // Check if some but not all metrics are listed 
         const metrics = [o, a, t, d];
         const hasAnyMetric = metrics.some(m => m !== null);
         const hasAllMetrics = metrics.every(m => m !== null);
         if (hasAnyMetric && !hasAllMetrics) {
-          this.showError("Incomplete Metrics", "Either no metrics or all four metrics (o, a, t, d) must be listed.", i + 1);
+          this.showError("Incomplete Metrics", "Either no metrics or three (a, t, d) or four (o, a, t, d) metrics must be listed.", i + 1);
           return;
         }
 
         // Validate the all-or-none rule for leaf node metrics
         let hasCurrentMetrics = o !== null || a !== null || t !== null || d !== null;
         if (hasMetrics === null) {
-          hasMetrics = hasCurrentMetrics; // Set initial state
+          hasMetrics = hasCurrentMetrics;
         } else if (hasMetrics !== hasCurrentMetrics) {
           this.showError("Inconsistent Metrics", "Either all or no leaf nodes should have metrics listed.", i + 1);
           return;
@@ -492,7 +519,7 @@ export default class AttackTreeController {
 
     for (let [ID, node] of nodes) {
       const parentID = ID.includes(".") ? ID.substring(0, ID.lastIndexOf(".")) : null;
-      
+
       if (parentID !== null) {
         // Check if the parent node exists
         if (!nodes.has(parentID)) {
@@ -529,7 +556,7 @@ export default class AttackTreeController {
       const root = [...nodes.values()].find(n => !n.ID.includes("."));
       const output = JSON.stringify(root);
       Window.map.setTreeData(output);
-      console.log(output)
+      console.log(output);
 
       const treeAnalyzerController = new TreeAnalyzerController();
       Window.map.setScenarioData(treeAnalyzerController.analyzeTree(root));
@@ -572,11 +599,7 @@ export default class AttackTreeController {
       node.name = name;
 
       if (type === "O" || type === "A") {
-        if (type === "O") {
-          node.operator = "OR"
-        } else if (type === "A") {
-          node.operator = "AND"
-        }
+        node.operator = type === "O" ? "OR" : "AND";
         node.children = [];
       } else if (type === "T") {
         // Handle leaf nodes and optional metrics
@@ -656,6 +679,13 @@ export default class AttackTreeController {
       return value.slice(1, -1).replace(/""/g, '"'); // Remove surrounding quotes & restore inner quotes
     }
     return value.replace(/""/g, '"'); // Just restore escaped quotes if no surrounding quotes
+  }
+
+  /**
+   * Calculates the 'o' metric using weighted values.
+   */
+  calculateMetricO(a, t, d, weightA, weightT, weightD) {
+    return (a * weightA) + (t * weightT) + (d * weightD);
   }
 
 }
