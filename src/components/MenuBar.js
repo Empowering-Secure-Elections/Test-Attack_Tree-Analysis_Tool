@@ -15,7 +15,8 @@ import {
   DownloadOutlined,
   FileOutlined,
   FileImageOutlined,
-  FileExcelOutlined
+  FileExcelOutlined,
+  FileTextOutlined
 } from "@ant-design/icons";
 import UIController from "../controllers/UIController";
 import { getByTestId } from "@testing-library/dom";
@@ -45,27 +46,27 @@ class MenuBar extends Component {
   handleClick = (e) => {
     console.log(e);
     switch (e.key) {
-      case "setting:4":
+      case "setting:3":
         Window.map.showRecommendations();
         var message = this.props.enableRecommendation
           ? "Recommendations Disabled"
           : "Recommendations Enabled";
         Window.map.openNotificationWithIcon("success", message, "");
         break;
-      case "setting:2":
+      case "setting:4":
         this.toggleOpened();
         break;
-      case "setting:3":
-        Window.map.exportDSL();
+      case "setting:5":
+        this.exportDslInput();
         break;
       case "setting:6":
-        this.handleCsvSave();
+        this.exportCsvInput();
         break;
-      case "setting:7":
+      case "setting:8": 
         this.handleTreePdfSave();
         break;
-      case "setting:8":
-        Window.map.handleScenarioPdfSave();
+      case "setting:9":
+        this.handleScenariosCsvSave();
         break;
     }
   };
@@ -109,7 +110,7 @@ class MenuBar extends Component {
   * the second column is the overall likelihood of that scenario, 
   * the third column is the path of nodes of the scenario.
   */
-  handleCsvSave = () => {
+  handleScenariosCsvSave = () => {
     // Checks to see if there are scenarios
     if (this.props.scenarioData && this.props.scenarioData.length > 0) {
       const fileContent = this.props.scenarioData.map((scenario) => {
@@ -125,6 +126,175 @@ class MenuBar extends Component {
       Window.map.openNotificationWithIcon("error", "Generate tree before exporting CSV file", "");
     }
   };
+
+  /**
+   * Exports the attack tree data in DSL format.
+   */
+  exportDslInput() {
+    // Checks if scenario data exists which indicates the tree was generated
+    if (this.props.scenarioData && this.props.scenarioData.length > 0) {
+      const format = Window.map.detectFormat(Window.map.getTextAreaValue());
+      var fileContent;
+
+      if (format === "DSL") {
+        fileContent = Window.map.getTextAreaValue();
+      } else if (format === "CSV") {
+        try {
+          fileContent = this.convertJsonToDsl(Window.map.getTreeData());
+        } catch (error) {
+          Window.map.openNotificationWithIcon("error", "Failed to convert to DSL", "");
+          return;
+        }
+      } else {
+        Window.map.openNotificationWithIcon("error", "Unrecognized input text format", "");
+        return;
+      }
+
+      var blob = new Blob([fileContent], {
+        type: "text/plain;charset=utf-8",
+      });
+      saveAs(blob, "AttackTreeInput.txt");
+    } else {
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting DSL input file", "");
+    }
+  }
+
+  /**
+   * Converts JSON attack tree data into DSL format.
+   * @param {Object} jsonData - JSON representation of the attack tree.
+   * @return {string} DSL formatted string.
+   */
+  convertJsonToDsl(jsonData) {
+    let dslLines = [];
+
+    function traverse(node, indent = "") {
+      const { name, operator, o, a, t, d, children = [] } = node;
+      const type = children.length > 0 
+        ? (operator ? operator : (() => { throw new Error(`Operator missing for node: ${name}`) }))
+        : "LEAF"; // Default to LEAF if no children
+
+      let line = `${indent}${name}`;
+
+      if (type === "LEAF") {
+        if (o !== undefined && a !== undefined && t !== undefined && d !== undefined) {
+          line += `;o=${o};a=${a};t=${t};d=${d}`;
+        }
+      } else {
+        line += `;${type}`;
+      }
+
+      dslLines.push(line);
+
+      for (const child of children) {
+        traverse(child, indent + "\t");
+      }
+    }
+
+    try {
+      traverse(jsonData);
+    } catch (error) {
+      Window.map.openNotificationWithIcon("error", "Format Error", error.message);
+    }
+
+    return dslLines.join("\n");
+  }
+
+  /**
+   * Exports the attack tree data in CSV format.
+   */
+  exportCsvInput() {
+    // Checks if scenario data exists which indicates the tree was generated
+    if (this.props.scenarioData && this.props.scenarioData.length > 0) {
+      const format = Window.map.detectFormat(Window.map.getTextAreaValue());
+      var fileContent;
+
+      if (format === "DSL") {
+        try {
+          fileContent = this.convertJsonToCsv(Window.map.getTreeData());
+        } catch (error) {
+          Window.map.openNotificationWithIcon("error", "Failed to convert to CSV", "");
+          return;
+        }
+      } else if (format === "CSV") {
+        fileContent = Window.map.getTextAreaValue();
+      } else {
+        Window.map.openNotificationWithIcon("error", "Unrecognized input text format", "");
+        return;
+      }
+
+      var blob = new Blob([fileContent], {
+        type: "text/csv;charset=utf-8",
+      });
+      saveAs(blob, "AttackTreeInput.csv");
+    } else {
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting CSV input file", "");
+    }
+  }
+
+  /**
+   * Converts JSON attack tree data into CSV format.
+   * @param {Object} jsonData - JSON representation of the attack tree.
+   * @return {string} CSV formatted string.
+   */
+  convertJsonToCsv(jsonData) {
+    let csvLines = [];
+
+    const traverse = (node, parentID = "", childIndex = 1) => {
+      const { name, operator, o, a, t, d, children = [] } = node;
+
+      // Compute hierarchical ID
+      const nodeID = parentID ? `${parentID}.${childIndex}` : "1";
+
+      // Determine node type mapping
+      let type;
+      if (children.length > 0) {
+        if (!operator) {
+          throw new Error(`Operator missing for node: ${name}`);
+        }
+        type = operator === "AND" ? "A" : operator === "OR" ? "O" : "Unknown";
+      } else {
+        type = "T"; // Leaf node
+      }
+
+      // Format CSV line
+      const csvFriendlyName = this.escapeCsvValue(name);
+      let line = `${type},${nodeID},${csvFriendlyName}`;
+
+      // Append metrics if it's a leaf node
+      if (type === "T" && o !== undefined && a !== undefined && t !== undefined && d !== undefined) {
+        line += `,${o},${a},${t},${d}`;
+      }
+
+      csvLines.push(line);
+
+      // Recursively process children with correct numbering
+      children.forEach((child, index) => {
+        traverse(child, nodeID, index + 1);
+      });
+    };
+
+    try {
+      traverse(jsonData);
+    } catch (error) {
+      Window.map.openNotificationWithIcon("error", "Format Error", error.message);
+    }
+
+    return csvLines.join("\n");
+  }
+
+  /**
+   * Escapes special characters in CSV values.
+   * @param {string} value - The value to be escaped for CSV.
+   * @return {string} The escaped CSV value.
+   */
+  escapeCsvValue(value) {
+    if (typeof value === "string") {
+      if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+        return `"${value.replace(/"/g, '""')}"`; // Wrap in quotes and escape existing quotes
+      }
+    }
+    return value;
+  }
 
   toggleOpened = () => {
     // Checks if scenario data exists which indicates the tree was generated
@@ -376,46 +546,70 @@ class MenuBar extends Component {
           mode="horizontal"
         >
           <SubMenu key="SubMenu1" icon={<SettingOutlined />} title="File">
-            <Menu.Item key="setting:1" icon={<UploadOutlined />}>
-              <Upload
-                key="upload"
-                accept=".txt"
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  const reader = new FileReader();
-
-                  reader.onload = (e) => {
-                    uiController.getImportedDSL(e.target.result);
-                  };
-                  reader.readAsText(file);
-                  // Prevent upload
-                  return false;
-                }}
-              >
-                <Button>Import DSL</Button>
-              </Upload>
-            </Menu.Item>
-            <Menu.Item key="setting:2" icon={<FileOutlined />}>
+            <SubMenu key="SubMenu3" icon={<UploadOutlined />} title="Import File">
+              <Menu.Item key="setting:1" icon={<FileTextOutlined />}>
+                <Upload
+                  key="upload-dsl"
+                  accept=".txt"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      uiController.getImportedFile(e.target.result);
+                    };
+                    reader.readAsText(file);
+                    // Prevent upload
+                    return false;
+                  }}
+                >
+                  <Button>Import DSL</Button>
+                </Upload>
+              </Menu.Item>
+              <Menu.Item key="setting:2" icon={<FileExcelOutlined />}>
+                <Upload
+                  key="upload-csv"
+                  accept=".csv"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      uiController.getImportedFile(e.target.result);
+                    };
+                    reader.readAsText(file);
+                    // Prevent upload
+                    return false;
+                  }}
+                >
+                  <Button>Import CSV</Button>
+                </Upload>
+              </Menu.Item>
+            </SubMenu>
+            <Menu.Item key="setting:4" icon={<FileOutlined />}>
               Generate Report
             </Menu.Item>
-            <Menu.Item key="setting:3" icon={<DownloadOutlined />}>
-              Export DSL
-            </Menu.Item>
-            <Menu.Item key="setting:5" icon={<FileImageOutlined />} onClick={this.handleSvgSave.bind(this)}>
+            <SubMenu key="SubMenu4" icon={<DownloadOutlined />} title="Export Input File">
+              <Menu.Item key="setting:5" icon={<FileTextOutlined />}>
+                Export DSL Input
+              </Menu.Item>
+              <Menu.Item key="setting:6" icon={<FileExcelOutlined />}>
+                Export CSV Input
+              </Menu.Item>
+            </SubMenu>
+            <Menu.Item key="setting:7" icon={<FileImageOutlined />} onClick={this.handleSvgSave.bind(this)}>
               Export SVG
             </Menu.Item>
-            <Menu.Item key="setting:6" icon={<FileExcelOutlined />}>
-              Export CSV
-            </Menu.Item>
-            <Menu.Item key="setting:7" icon={<FileImageOutlined />}>
+            <Menu.Item key="setting:8" icon={<FileImageOutlined />}>
               Export PDF
+            </Menu.Item>
+            <Menu.Item key="setting:9" icon={<FileExcelOutlined />}>
+              Export Scenarios
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">
             {this.props.enableRecommendation ? (
-              <Menu.Item key="setting:4">Disable Recommendations</Menu.Item>
+              <Menu.Item key="setting:3">Disable Recommendations</Menu.Item>
             ) : (
-              <Menu.Item key="setting:4">Enable Recommendations</Menu.Item>
+              <Menu.Item key="setting:3">Enable Recommendations</Menu.Item>
             )}
           </SubMenu>
         </Menu>

@@ -1,6 +1,32 @@
 import TreeAnalyzerController from "./TreeAnalyzerController";
 
 export default class AttackTreeController {
+
+  /**
+   * Parse the input text based on its detected format.
+   * @param {string} text A string to parse.
+   */
+  parseInput(text) {
+    const format = Window.map.detectFormat(text);
+
+    if (format === "DSL") {
+      this.parseDSL(text);
+    } else if (format === "CSV") {
+      this.parseCSV(text);
+    } else {
+      Window.map.openNotificationWithIcon(
+        "error",
+        "Format Error",
+        "Input format is not recognized"
+      );
+    }
+  }
+
+  /**
+   * Checks if the format of DSL input is in the expected tab-indented pattern.
+   * @param {string} text The DSL input to validate.
+   * @returns {Array} Whether the input is valid or not.
+   */
   patternMatch(text) {
     // D3 library also sanitizes input (e.g., won't allow tabs, cleans whitespace).
     const lineRegex = /^(\t*[\W|\w|\s]+)$/g;
@@ -81,7 +107,7 @@ export default class AttackTreeController {
     Window.map.openNotificationWithIcon(
       "error",
       title,
-      "Error at line: " + lineNum + "\n" + description
+      "Error at line " + lineNum + ": \n" + description
     );
   }
 
@@ -108,7 +134,7 @@ export default class AttackTreeController {
     var identifier = 0;
 
     //regex for node syntax
-    const nodeRegex = /\w+;(OR|AND)$/g;
+    const nodeRegex = /^[\w\s"'“”‘’\/\-()!@#$%&*~+_=?.,]+;(OR|AND)$/g;
 
     //stacks
     var squareBrackets = [];
@@ -138,7 +164,7 @@ export default class AttackTreeController {
         // stop execution
       }
       //check for metrics
-      output += '"name":"' + second_split[0] + '"';
+      output += '"name":"' + this.escapeDslQuotes(second_split[0]) + '"';
       let metrics_map = this.getLeafMetrics(second_split);
       //iterate over key, value pairs in metrics mapping
       for (const [key, value] of Object.entries(metrics_map)) {
@@ -156,7 +182,7 @@ export default class AttackTreeController {
       }
       output +=
         '"name":"' +
-        second_split[0] +
+        this.escapeDslQuotes(second_split[0]) +
         '", "operator":"' +
         second_split[1] +
         '"';
@@ -218,7 +244,7 @@ export default class AttackTreeController {
             // stop execution
           }
           //check for metrics
-          output += '"name":"' + second_split[0] + '"';
+          output += '"name":"' + this.escapeDslQuotes(second_split[0]) + '"';
           let metrics_map = this.getLeafMetrics(second_split);
           //iterate over key, value pairs in metrics mapping
           for (const [key, value] of Object.entries(metrics_map)) {
@@ -244,7 +270,7 @@ export default class AttackTreeController {
           }
           output +=
             '"name":"' +
-            second_split[0] +
+            this.escapeDslQuotes(second_split[0]) +
             '","operator":"' +
             second_split[1] +
             '"';
@@ -258,7 +284,7 @@ export default class AttackTreeController {
           // stop execution
         }
         //check for metrics
-        output += '"name":"' + second_split[0] + '"';
+        output += '"name":"' + this.escapeDslQuotes(second_split[0]) + '"';
         let metrics_map = this.getLeafMetrics(second_split);
         //iterate over key, value pairs in metrics mapping
         for (const [key, value] of Object.entries(metrics_map)) {
@@ -290,6 +316,15 @@ export default class AttackTreeController {
     Window.map.setScenarioData(treeAnalyzerController.analyzeTree(
       JSON.parse(output)
     ));
+  }
+
+  /**
+   * Escapes any existing quotes in a DSL string.
+   * @param {string} str - The string value to be escaped for DSL.
+   * @return {string} The escaped DSL value.
+   */
+  escapeDslQuotes(str) {
+    return str.replace(/"/g, '\\"');
   }
 
   /**
@@ -342,4 +377,315 @@ export default class AttackTreeController {
     }
     return output;
   }
+
+  /**
+   * Parses the CSV-formatted text.
+   * @param {string} text - The CSV input.
+   */
+  parseCSV(text) {
+    text = text.trim();
+    const lines = text.split("\n");
+    const nodes = new Map();
+    const seenIDs = new Set();
+    let rootCount = 0;
+    let hasMetrics = null; // null = undecided, true = must have, false = must not have
+
+    // Detect if the first line contains weights
+    let weightA = 0.33, weightT = 0.33, weightD = 0.33; // Default weights
+    if (lines.length > 0) {
+      const firstLineParts = this.parseCsvLine(lines[0]);
+      if (firstLineParts.length === 3 &&
+        !isNaN(parseFloat(firstLineParts[0])) &&
+        !isNaN(parseFloat(firstLineParts[1])) &&
+        !isNaN(parseFloat(firstLineParts[2]))) {
+        // Set weights and remove the first line from processing
+        weightA = parseFloat(firstLineParts[0]);
+        weightT = parseFloat(firstLineParts[1]);
+        weightD = parseFloat(firstLineParts[2]);
+        lines.shift();
+      }
+    }
+
+    // Validate that weights sum to approximately 1 (with a 0.05 margin of error)
+    const totalWeight = weightA + weightT + weightD;
+    if (totalWeight < 0.95 || totalWeight > 1.05) {
+      this.showError("Invalid Weights", `The sum of weights must be approximately 1 (with a 0.05 margin of error). Found: ${totalWeight.toFixed(2)}.`, 1);
+      return;
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      let result = this.patternMatch(lines[i]);
+      if (result[0] === false) {
+        this.showError(result[1], result[2], i + 1);
+        return;
+      }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const parts = this.parseCsvLine(lines[i]);
+      if (parts.length < 3) {
+        this.showError("Invalid Row Format", "Each row must have at least 3 columns (Type, ID, Name).", i + 1);
+        return;
+      }
+
+      const type = parts[0].trim();
+      const ID = parts[1].trim();
+      const name = parts[2].trim();
+      const parentID = ID.includes(".") ? ID.substring(0, ID.lastIndexOf(".")) : null;
+
+      // Check node type
+      if (!["O", "A", "T"].includes(type)) {
+        this.showError("Invalid Node Type", `Invalid node type '${type}'.`, i + 1);
+        return;
+      }
+
+      // Check ID format
+      if (!/^[0-9]+(\.[0-9]+)*$/.test(ID)) {
+        this.showError("Invalid ID Format", `Invalid node ID '${ID}'.`, i + 1);
+        return;
+      }
+
+      // Check for duplicate IDs
+      if (seenIDs.has(ID)) {
+        this.showError("Duplicate ID", `ID '${ID}' is used more than once.`, i + 1);
+        return;
+      }
+      seenIDs.add(ID);
+
+      // Check for blank name
+      if (name === "") {
+        this.showError("Invalid Name", "Name cannot be blank.", i + 1);
+        return;
+      }
+
+      // Used to check how many root nodes exists
+      if (parentID === null) {
+        rootCount++;
+      }
+
+      // Create node object
+      let node = { ID, name };
+      if (type === "O" || type === "A") {
+        node.operator = type === "O" ? "OR" : "AND";
+        node.children = [];
+      } else if (type === "T") {
+        let o = null, a = null, t = null, d = null;
+
+        if (parts.length === 7) {
+          o = parseFloat(parts[3]);
+          a = parseFloat(parts[4]);
+          t = parseFloat(parts[5]);
+          d = parseFloat(parts[6]);
+        } else if (parts.length === 6) {
+          a = parseFloat(parts[3]);
+          t = parseFloat(parts[4]);
+          d = parseFloat(parts[5]);
+          o = this.calculateMetricO(a, t, d, weightA, weightT, weightD);
+        }
+
+        // Check if some but not all metrics are listed 
+        const metrics = [o, a, t, d];
+        const hasAnyMetric = metrics.some(m => m !== null);
+        const hasAllMetrics = metrics.every(m => m !== null);
+        if (hasAnyMetric && !hasAllMetrics) {
+          this.showError("Incomplete Metrics", "Either no metrics or three (a, t, d) or four (o, a, t, d) metrics must be listed.", i + 1);
+          return;
+        }
+
+        // Validate the all-or-none rule for leaf node metrics
+        let hasCurrentMetrics = o !== null || a !== null || t !== null || d !== null;
+        if (hasMetrics === null) {
+          hasMetrics = hasCurrentMetrics;
+        } else if (hasMetrics !== hasCurrentMetrics) {
+          this.showError("Inconsistent Metrics", "Either all or no leaf nodes should have metrics listed.", i + 1);
+          return;
+        }
+
+        // If using metrics, ensure they are all valid numbers
+        if (hasMetrics) {
+          if (isNaN(o) || isNaN(a) || isNaN(t) || isNaN(d)) {
+            this.showError("Invalid Metrics", "Metrics must be numbers.", i + 1);
+            return;
+          }
+          node.o = o;
+          node.a = a;
+          node.t = t;
+          node.d = d;
+        }
+      }
+
+      nodes.set(ID, node);
+    }
+
+    for (let [ID, node] of nodes) {
+      const parentID = ID.includes(".") ? ID.substring(0, ID.lastIndexOf(".")) : null;
+
+      if (parentID !== null) {
+        // Check if the parent node exists
+        if (!nodes.has(parentID)) {
+          this.showError("Invalid Parent Reference", `Parent ID ${parentID} does not match any existing node ID.`);
+          return;
+        }
+        let parent = nodes.get(parentID);
+
+        // Check if the parent is a leaf node (which should not have children)
+        if (parent.operator !== "AND" && parent.operator !== "OR") {
+          this.showError("Invalid Child Assignment", `Terminal/leaf node '${parentID}' cannot have children.`);
+          return;
+        }
+
+        parent.children.push(node);
+      }
+    }
+
+    // Check that all AND/OR nodes have at least one child
+    for (let node of nodes.values()) {
+      if ((node.operator === "AND" || node.operator === "OR") && node.children.length === 0) {
+        this.showError("Missing Children", `${node.operator} node '${node.ID}' must have at least one child.`);
+        return;
+      }
+    }
+
+    // Checks if there is one root node
+    if (rootCount !== 1) {
+      this.showError("Root Node Error", "There can only be one root node.");
+      return;
+    }
+
+    try {
+      const root = [...nodes.values()].find(n => !n.ID.includes("."));
+      const output = JSON.stringify(root);
+      Window.map.setTreeData(output);
+      console.log(output);
+
+      const treeAnalyzerController = new TreeAnalyzerController();
+      Window.map.setScenarioData(treeAnalyzerController.analyzeTree(root));
+
+      Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
+    } catch (error) {
+      console.error("Error parsing CSV:", error);
+      Window.map.openNotificationWithIcon("error", "Tree Generation Failed", "Invalid CSV format");
+    }
+  }
+
+  /**
+   * Converts a CSV string into a JSON structure.
+   * @param {string} text - The CSV input.
+   * @returns {Object} - The root node of the generated JSON tree.
+   */
+  convertCSVToJSON(text) {
+    const lines = text.trim().split("\n");
+    const nodes = new Map();
+    let root = null;
+
+    for (const line of lines) {
+      const parts = this.parseCsvLine(line);
+
+      if (parts.length < 3) {
+        throw new Error("Invalid CSV format: Each row must have at least 3 columns (Type, ID, Name).");
+      }
+
+      const type = parts[0].trim(); // First column is node type (A, O, T)
+      const ID = parts[1].trim(); // Second column is hierarchical ID
+      const name = parts[2].trim(); // Third column is node name
+      const parentID = ID.includes(".") ? ID.substring(0, ID.lastIndexOf(".")) : null; // Extract parent ID
+
+      // Ensure node exists in map
+      if (!nodes.has(ID)) {
+        nodes.set(ID, { ID, name });
+      }
+
+      let node = nodes.get(ID);
+      node.name = name;
+
+      if (type === "O" || type === "A") {
+        node.operator = type === "O" ? "OR" : "AND";
+        node.children = [];
+      } else if (type === "T") {
+        // Handle leaf nodes and optional metrics
+        let o = parts[3] ? parseFloat(parts[3]) : null;
+        let a = parts[4] ? parseFloat(parts[4]) : null;
+        let t = parts[5] ? parseFloat(parts[5]) : null;
+        let d = parts[6] ? parseFloat(parts[6]) : null;
+
+        if ([o, a, t, d].some(m => m !== null)) {
+          node.o = o;
+          node.a = a;
+          node.t = t;
+          node.d = d;
+        }
+      }
+
+      // Attach to parent if applicable
+      if (parentID === null) {
+        root = node;
+      } else {
+        if (!nodes.has(parentID)) {
+          nodes.set(parentID, { ID: parentID, children: [] });
+        }
+        let parent = nodes.get(parentID);
+
+        if (!parent.children) {
+          parent.children = []; // Ensure parent has children array
+        }
+
+        parent.children.push(node);
+      }
+    }
+
+    return root;
+  }
+
+  /**
+   * Parses a single CSV line into an array of values.
+   * @param {string} line - The CSV line to be parsed.
+   * @return {Array} An array of parsed values from the CSV line.
+   */
+  parseCsvLine(line) {
+    const values = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      let char = line[i];
+
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          // Handle escaped quote ("" -> ")
+          current += '"';
+          i++; // Skip next quote
+        } else {
+          inQuotes = !inQuotes; // Toggle quote mode
+        }
+      } else if (char === ',' && !inQuotes) {
+        values.push(this.unescapeCsvValue(current));
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+
+    values.push(this.unescapeCsvValue(current));
+    return values;
+  }
+
+  /**
+   * Unescapes a CSV value.
+   * @param {string} value - The CSV value to be unescaped.
+   * @return {string} The unescaped value.
+   */
+  unescapeCsvValue(value) {
+    if (value.startsWith('"') && value.endsWith('"')) {
+      return value.slice(1, -1).replace(/""/g, '"'); // Remove surrounding quotes & restore inner quotes
+    }
+    return value.replace(/""/g, '"'); // Just restore escaped quotes if no surrounding quotes
+  }
+
+  /**
+   * Calculates the 'o' metric using weighted values.
+   */
+  calculateMetricO(a, t, d, weightA, weightT, weightD) {
+    return (a * weightA) + (t * weightT) + (d * weightD);
+  }
+
 }
