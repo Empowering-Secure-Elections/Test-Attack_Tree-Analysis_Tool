@@ -394,10 +394,13 @@ export default class AttackTreeController {
     let weightA = 0.33, weightT = 0.33, weightD = 0.33; // Default weights
     if (lines.length > 0) {
       const firstLineParts = this.parseCsvLine(lines[0]);
-      if (firstLineParts.length === 3 &&
+
+      // Check if first three parts are valid numbers and other parts are either missing or null/empty
+      if (firstLineParts.length >= 3 &&
         !isNaN(parseFloat(firstLineParts[0])) &&
         !isNaN(parseFloat(firstLineParts[1])) &&
-        !isNaN(parseFloat(firstLineParts[2]))) {
+        !isNaN(parseFloat(firstLineParts[2])) &&
+        firstLineParts.slice(3).every(part => part === null || part === "")) {
         // Set weights and remove the first line from processing
         weightA = parseFloat(firstLineParts[0]);
         weightT = parseFloat(firstLineParts[1]);
@@ -406,10 +409,10 @@ export default class AttackTreeController {
       }
     }
 
-    // Validate that weights sum to approximately 1 (with a 0.05 margin of error)
+    // Validate that weights sum to approximately 1 (with a 0.03 margin of error)
     const totalWeight = weightA + weightT + weightD;
-    if (totalWeight < 0.95 || totalWeight > 1.05) {
-      this.showError("Invalid Weights", `The sum of weights must be approximately 1 (with a 0.05 margin of error). Found: ${totalWeight.toFixed(2)}.`, 1);
+    if (totalWeight < 0.97 || totalWeight > 1.03) {
+      this.showError("Invalid Weights", `The sum of weights must be approximately 1 (with a 0.03 margin of error). Found: ${totalWeight.toFixed(2)}.`, 1);
       return;
     }
 
@@ -471,16 +474,25 @@ export default class AttackTreeController {
       } else if (type === "T") {
         let o = null, a = null, t = null, d = null;
 
-        if (parts.length === 7) {
-          o = parseFloat(parts[3]);
-          a = parseFloat(parts[4]);
-          t = parseFloat(parts[5]);
-          d = parseFloat(parts[6]);
-        } else if (parts.length === 6) {
-          a = parseFloat(parts[3]);
-          t = parseFloat(parts[4]);
-          d = parseFloat(parts[5]);
-          o = this.calculateMetricO(a, t, d, weightA, weightT, weightD);
+        if (parts.length >= 6 && parts[3] !== "" && parts[4] !== "" && parts[5] !== "") {
+          if (parts.length >= 7 && parts[6] !== null && parts[6] !== "") {
+            // Explicit 'o' value provided along with 'a', 't', and 'd'
+            o = parseFloat(parts[3]);
+            a = parseFloat(parts[4]);
+            t = parseFloat(parts[5]);
+            d = parseFloat(parts[6]);
+          } else {
+            // 'o' is missing, so calculate it based on 'a', 't', and 'd'
+            a = parseFloat(parts[3]);
+            t = parseFloat(parts[4]);
+            d = parseFloat(parts[5]);
+            o = this.calculateMetricO(a, t, d, weightA, weightT, weightD);
+          }
+        } else {
+          o = parts[3] ? parseFloat(parts[3]) : null;
+          a = parts[4] ? parseFloat(parts[4]) : null;
+          t = parts[5] ? parseFloat(parts[5]) : null;
+          d = parts[6] ? parseFloat(parts[6]) : null;
         }
 
         // Check if some but not all metrics are listed 

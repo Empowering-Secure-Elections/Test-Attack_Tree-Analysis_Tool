@@ -68,6 +68,9 @@ class MenuBar extends Component {
       case "setting:9":
         this.handleScenariosCsvSave();
         break;
+      case "setting:10":
+        this.handleTerminalNodesCsvSave();
+        break;
     }
   };
 
@@ -105,25 +108,89 @@ class MenuBar extends Component {
   }
 
   /**
-  * Exports the scenarios of a tree to a CSV file.
-  * The first column is the scenario number, 
-  * the second column is the overall likelihood of that scenario, 
-  * the third column is the path of nodes of the scenario.
-  */
+   * Exports the scenarios of a tree to a CSV file.
+   * The first column is the scenario number, 
+   * the second column is the overall likelihood of that scenario, 
+   * the third column is the path of nodes of the scenario.
+   */
   handleScenariosCsvSave = () => {
     // Checks to see if there are scenarios
     if (this.props.scenarioData && this.props.scenarioData.length > 0) {
-      const fileContent = this.props.scenarioData.map((scenario) => {
-        const path = scenario.namepath.join(" -> "); // Use "->" for path
-        return `${scenario.name},${scenario.o},${path}`;
+      const treeData = Window.map.getTreeData(); // Full attack tree JSON structure
+      const terminalNodeIds = new Set();
+
+      // Recursively collect terminal node IDs
+      const collectTerminalNodes = (node) => {
+        if (!node.operator || (node.operator !== "AND" && node.operator !== "OR")) {
+          terminalNodeIds.add(node.ID); // Store terminal node ID
+        }
+        if (node.children) {
+          node.children.forEach(collectTerminalNodes);
+        }
+      };
+      (Array.isArray(treeData) ? treeData : [treeData]).forEach(collectTerminalNodes);
+
+      let fileContent = "Scenario Name,Scenario O,Terminal Nodes\n"; // CSV Header
+      // Process each scenario to extract terminal nodes
+      fileContent += this.props.scenarioData.map((scenario) => {
+
+        if (!Array.isArray(scenario.path) || !Array.isArray(scenario.namepath) ||
+          scenario.path.length !== scenario.namepath.length || scenario.path.length === 0) {
+          return `${scenario.name},${scenario.o},NO_TERMINAL_NODES`;
+        }
+
+        // Find terminal nodes by mapping scenario.path to scenario.namepath
+        const terminalNodes = scenario.path
+          .map((nodeId, index) => terminalNodeIds.has(nodeId) ? scenario.namepath[index] : null)
+          .filter(nodeName => nodeName !== null); // Remove null values
+
+        return `${scenario.name},${scenario.o},${terminalNodes.join(", ")}`;
       }).join("\n");
-  
-      var blob = new Blob([fileContent], {
-        type: "text/csv;charset=utf-8",
-      });
+
+      var blob = new Blob([fileContent], { type: "text/csv;charset=utf-8" });
       saveAs(blob, "Scenarios.csv");
     } else {
-      Window.map.openNotificationWithIcon("error", "Generate tree before exporting CSV file", "");
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting the scenarios", "");
+    }
+  };
+
+  /**
+   * Exports a CSV file containing all terminal (leaf) nodes from the attack tree.
+   */
+  handleTerminalNodesCsvSave = () => {
+    // Checks to see if there are scenarios
+    if (this.props.scenarioData && this.props.scenarioData.length > 0) {
+      const treeData = Window.map.getTreeData();
+      const terminalNodes = [];
+
+      // Recursively collect terminal nodes with their metrics
+      const collectTerminalNodes = (node) => {
+        if (!node.operator || (node.operator !== "AND" && node.operator !== "OR")) {
+          terminalNodes.push({
+            name: node.name || "",
+            o: node.o !== undefined ? node.o : "",
+            a: node.a !== undefined ? node.a : "",
+            t: node.t !== undefined ? node.t : "",
+            d: node.d !== undefined ? node.d : ""
+          });
+        }
+        if (node.children) {
+          node.children.forEach(collectTerminalNodes);
+        }
+      };
+
+      (Array.isArray(treeData) ? treeData : [treeData]).forEach(collectTerminalNodes);
+
+      // Prepare CSV content
+      let fileContent = "Node Name,O,A,T,D\n"; // CSV Header
+      fileContent += terminalNodes.map(node =>
+        `${node.name},${node.o},${node.a},${node.t},${node.d}`
+      ).join("\n");
+
+      var blob = new Blob([fileContent], { type: "text/csv;charset=utf-8" });
+      saveAs(blob, "TerminalNodes.csv");
+    } else {
+      Window.map.openNotificationWithIcon("error", "Generate tree before exporting the terminal nodes", "");
     }
   };
 
@@ -603,6 +670,9 @@ class MenuBar extends Component {
             </Menu.Item>
             <Menu.Item key="setting:9" icon={<FileExcelOutlined />}>
               Export Scenarios
+            </Menu.Item>
+            <Menu.Item key="setting:10" icon={<FileExcelOutlined />}>
+              Export Terminal Nodes
             </Menu.Item>
           </SubMenu>
           <SubMenu key="SubMenu2" icon={<DesktopOutlined />} title="View">
