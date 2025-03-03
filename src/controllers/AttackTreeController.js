@@ -388,7 +388,7 @@ export default class AttackTreeController {
     const nodes = new Map();
     const seenIDs = new Set();
     let rootCount = 0;
-    let hasMetrics = null; // null = undecided, true = must have, false = must not have
+    let metricsNo = null; // null = undecided, 0 = no metrics, 3 = three metrics, 4 = four metrics
 
     // Detect if the first line contains weights
     let weightA = 0.33, weightT = 0.33, weightD = 0.33; // Default weights
@@ -428,6 +428,9 @@ export default class AttackTreeController {
       const parts = this.parseCsvLine(lines[i]);
       if (parts.length < 3) {
         this.showError("Invalid Row Format", "Each row must have at least 3 columns (Type, ID, Name).", i + 1);
+        return;
+      } else if (parts.length > 7 && parts.slice(7).some(part => part !== null && part !== "")) {
+        this.showError("Unexpected Extra Data", "There should not be more than 7 columns.", i + 1);
         return;
       }
 
@@ -472,7 +475,9 @@ export default class AttackTreeController {
         node.operator = type === "O" ? "OR" : "AND";
         node.children = [];
       } else if (type === "T") {
+        const minScale = 0, maxScale = 1.0;
         let o = null, a = null, t = null, d = null;
+        let currentMetricsNo = 0; // Can be 0, 3, or 4
 
         if (parts.length >= 6 && parts[3] !== "" && parts[4] !== "" && parts[5] !== "") {
           if (parts.length >= 7 && parts[6] !== null && parts[6] !== "") {
@@ -481,12 +486,14 @@ export default class AttackTreeController {
             a = parseFloat(parts[4]);
             t = parseFloat(parts[5]);
             d = parseFloat(parts[6]);
+            currentMetricsNo = 4;
           } else {
             // 'o' is missing, so calculate it based on 'a', 't', and 'd'
             a = parseFloat(parts[3]);
             t = parseFloat(parts[4]);
             d = parseFloat(parts[5]);
             o = this.calculateMetricO(a, t, d, weightA, weightT, weightD);
+            currentMetricsNo = 3;
           }
         } else {
           o = parts[3] ? parseFloat(parts[3]) : null;
@@ -500,23 +507,29 @@ export default class AttackTreeController {
         const hasAnyMetric = metrics.some(m => m !== null);
         const hasAllMetrics = metrics.every(m => m !== null);
         if (hasAnyMetric && !hasAllMetrics) {
-          this.showError("Incomplete Metrics", "Either no metrics or three (a, t, d) or four (o, a, t, d) metrics must be listed.", i + 1);
+          this.showError("Incomplete Metrics", "Either no metrics, three metrics (a, t, d), or four metrics (o, a, t, d) must be listed.", i + 1);
           return;
         }
 
-        // Validate the all-or-none rule for leaf node metrics
-        let hasCurrentMetrics = o !== null || a !== null || t !== null || d !== null;
-        if (hasMetrics === null) {
-          hasMetrics = hasCurrentMetrics;
-        } else if (hasMetrics !== hasCurrentMetrics) {
-          this.showError("Inconsistent Metrics", "Either all or no leaf nodes should have metrics listed.", i + 1);
+        // Validate that leaf nodes have the same number of metrics
+        if (metricsNo === null) {
+          metricsNo = currentMetricsNo;
+        } else if (metricsNo !== currentMetricsNo) {
+          this.showError(
+            "Inconsistent Metrics",
+            "All leaf nodes must have the same number of metrics: either none, three (a, t, d), or four (o, a, t, d).",
+            i + 1
+          );
           return;
         }
 
         // If using metrics, ensure they are all valid numbers
-        if (hasMetrics) {
+        if (hasAnyMetric) {
           if (isNaN(o) || isNaN(a) || isNaN(t) || isNaN(d)) {
             this.showError("Invalid Metrics", "Metrics must be numbers.", i + 1);
+            return;
+          } else if ([o, a, t, d].some(m => m !== null && (m < minScale || m > maxScale))) {
+            this.showError("Invalid Metric Range", "Metrics must be within 0-1 scale.", i + 1);
             return;
           }
           node.o = o;
@@ -697,7 +710,11 @@ export default class AttackTreeController {
    * Calculates the 'o' metric using weighted values.
    */
   calculateMetricO(a, t, d, weightA, weightT, weightD) {
-    return (a * weightA) + (t * weightT) + (d * weightD);
+    let tempA = 0.04 / a;
+    let tempT = 0.04 / t;
+    let tempD = 0.04 / d;
+
+    return (tempA * weightA) + (tempT * weightT) + (tempD * weightD);
   }
 
 }
