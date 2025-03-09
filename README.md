@@ -4,7 +4,7 @@ AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop 
 
 ## Features
 
-- Simplified DSL syntax to specify attack trees and a JSON format for parsed attack trees
+- Simplified DSL/CSV syntax to specify attack trees and a JSON format for parsed attack trees
 - Parser to convert inputted attack trees into JSON (with syntax checker)
 - Generates (i.e., visualizes) inputted attack trees
 - Determines all attack scenarios on the inputted attack tree
@@ -12,18 +12,18 @@ AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop 
 - Provides recommendations to mitigate attacks in an attack scenario based on the metrics and keywords found in the scenario path
 - Highlights a user-selected attack scenario on the tree
 - Allows multiple trees to be modeled and analyzed at the same time by switching between tabs in the application
+- Allows for the DSL/CSV syntax of a tree to be exported for reuse in the tool
 - Generates an HTML report of the attack tree analysis which includes all attack scenarios and recommendations
-
-![Animation](https://user-images.githubusercontent.com/49103000/162790364-1ef16090-8c68-420c-b465-f07abbc6aaf3.gif)
+- Generates a PDF file with the graphic of the attack tree
+- Generates a PDF report of an individual scenario with the attack scenario tree graphic and the list of terminal nodes in the scenario
 
 ## Documentation
 
-- [User Manual](Documentation/User%20Manual.pdf)
-- [Testing Document](Documentation/Testing%20Document.pdf)
+- [User Manual](Documentation/ESE%20User%20Manual.pdf)
 
 ## Download
 
-[Latest Release](https://github.com/yathuvaran/AT-AT/releases/tag/v1.0.0)
+[Latest Release](https://github.com/Empowering-Secure-Elections/attack-tree_analysis_tool/releases/tag/baseline-v1.0)
 
 ## Available Scripts
 
@@ -73,6 +73,7 @@ The app is minified and the filenames include the hashes.
 
 ## Required Software
 Node.js (from https://nodejs.org/en)
+
 #### Node Packages
 - `npm install -g concurrent`
 - `npm install --global cross-env`
@@ -80,10 +81,7 @@ Node.js (from https://nodejs.org/en)
 - `npm install react-scripts@latest`
 - `npm install react`
 
-
 ### Feature Goals
-- [ ] Export Graphic of full tree
-- [ ] Export graphic of specific scenarios
 - [ ] Improve input interface
   - [ ] Dynamic adjustable space for entering inputs
 - [ ] Make tree branch lengths adjust to fit around size of leaves

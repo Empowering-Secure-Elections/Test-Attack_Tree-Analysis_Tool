@@ -130,7 +130,7 @@ class MenuBar extends Component {
       };
       (Array.isArray(treeData) ? treeData : [treeData]).forEach(collectTerminalNodes);
 
-      let fileContent = "Scenario Name,Scenario O,Terminal Nodes\n"; // CSV Header
+      let fileContent = "Scenario Name,O,Terminal Nodes\n"; // CSV Header
       // Process each scenario to extract terminal nodes
       fileContent += this.props.scenarioData.map((scenario) => {
 
@@ -405,10 +405,10 @@ class MenuBar extends Component {
   generateRecommendations(scenarioData) {
     // Local map for metrics to full names.
     var metrics = {
-      o: "Occurrence Score",//was l
-      a: "Attack Cost",//was v
-      t: "Technical Difficulty", //was r
-      d: "Discovery Difficulty", //was t
+      o: "Occurrence Score",
+      a: "Attack Cost",
+      t: "Technical Difficulty",
+      d: "Discovery Difficulty",
     };
     // Define local variables to store rows and count for a unique key.
     var rows;

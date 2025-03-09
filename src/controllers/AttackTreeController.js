@@ -14,11 +14,7 @@ export default class AttackTreeController {
     } else if (format === "CSV") {
       this.parseCSV(text);
     } else {
-      Window.map.openNotificationWithIcon(
-        "error",
-        "Format Error",
-        "Input format is not recognized"
-      );
+      Window.map.openNotificationWithIcon("error", "Format Error", "Input format is not recognized");
     }
   }
 
@@ -352,7 +348,7 @@ export default class AttackTreeController {
         return [
           false,
           "Incorrect Metrics Syntax",
-          "Metric(s) Value should be o,a,t, or d",
+          "Metric(s) Value should be o, a, t, or d",
         ];
       }
       set.add(key_val[0]);
@@ -409,10 +405,10 @@ export default class AttackTreeController {
       }
     }
 
-    // Validate that weights sum to approximately 1 (with a 0.03 margin of error)
+    // Validate that weights sum to approximately 1 (with a 0.03 margin)
     const totalWeight = weightA + weightT + weightD;
     if (totalWeight < 0.97 || totalWeight > 1.03) {
-      this.showError("Invalid Weights", `The sum of weights must be approximately 1 (with a 0.03 margin of error). Found: ${totalWeight.toFixed(2)}.`, 1);
+      this.showError("Invalid Weights", `The sum of weights should be approximately 1, with a ±0.03 margin allowed for rounding. Found: ${totalWeight.toFixed(2)}.`, 1);
       return;
     }
 

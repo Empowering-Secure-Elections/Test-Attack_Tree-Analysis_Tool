@@ -20,8 +20,8 @@ import { jsPDF } from 'jspdf';
 import AND from "./assets/AND.png";
 import OR from "./assets/OR.png";
 
-// Attack tree metrics will include likelihood (L), victim impact (V),
-// resource points (R), and time (T).
+// Attack tree metrics will include Occurrence Score (O), Attack Cost (A),
+// Technical Difficulty (T), and Discovering Difficulty (D).
 // Keep this import here just in case.
 // Used for internal themes.
 // import "codemirror/theme/material-darker.css";
@@ -67,7 +67,7 @@ const columns = [
 var currentPanes = [
   {
     title: "New Tab 0",
-    // Initialize the tree to be an empty object and the dsl to empty string.
+    // Initialize the tree to be an empty object and the dsl/csv text to empty string.
     content: { tree: {}, dsl: "" },
     key: "0",
     closable: false,
@@ -196,7 +196,7 @@ class App extends React.Component {
     for (var i = 0; i < currentPanes.length; i++) {
       // If indexed currentPanes key matches the current index.
       if (currentPanes[i].key === this.currentIndex) {
-        // Save the tree data and dsl at the current index.
+        // Save the tree data and dsl/csv at the current index.
         currentPanes[i]["content"]["tree"] = this.state.treeDataSaved;
         currentPanes[i]["content"]["dsl"] = this.instance.getValue();
         currentPanes[i]["content"]["scenarioData"] = this.state.scenarioData;
@@ -223,7 +223,7 @@ class App extends React.Component {
       selectedRowsArray: [],
       highestMetricsData: {},
     });
-    // Set the text content to be DSL of currentPanes at the activeKeyIndex.
+    // Set the text content to be DSL/CSV of currentPanes at the activeKeyIndex.
     this.instance.setValue(currentPanes[activeKeyIndex].content.dsl);
   };
 
