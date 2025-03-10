@@ -19,7 +19,7 @@ AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop 
 
 ## Documentation
 
-- [User Manual](Documentation/ESE%20User%20Manual.pdf)
+[User Manual](Documentation/ESE%20User%20Manual.pdf)
 
 ## Download
 
@@ -80,14 +80,3 @@ Node.js (from https://nodejs.org/en)
 - `npm install -g wait-on`
 - `npm install react-scripts@latest`
 - `npm install react`
-
-### Feature Goals
-- [ ] Improve input interface
-  - [ ] Dynamic adjustable space for entering inputs
-- [ ] Make tree branch lengths adjust to fit around size of leaves
-- [ ] Makes leaves centered
-- [ ] Dynamic add leaves in tree
-- [ ] Temporal Flags for leaves to differentiate scenarios
-- [ ] User defined metrics
-  - [ ] UI for user defined metrics
-  - [ ] Information explaining how scenario metrics are calculated 
