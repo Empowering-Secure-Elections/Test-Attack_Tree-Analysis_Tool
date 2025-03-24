@@ -131,21 +131,21 @@ class MenuBar extends Component {
       (Array.isArray(treeData) ? treeData : [treeData]).forEach(collectTerminalNodes);
 
       let fileContent = "Scenario Name,O,Terminal Nodes\n"; // CSV Header
-      // Process each scenario to extract terminal nodes
-      fileContent += this.props.scenarioData.map((scenario) => {
 
+      this.props.scenarioData.forEach((scenario) => {
         if (!Array.isArray(scenario.path) || !Array.isArray(scenario.namepath) ||
           scenario.path.length !== scenario.namepath.length || scenario.path.length === 0) {
-          return `${scenario.name},${scenario.o},NO_TERMINAL_NODES`;
+          fileContent += `${scenario.name},${scenario.o},"NO_TERMINAL_NODES"\n`;
+          return;
         }
 
-        // Find terminal nodes by mapping scenario.path to scenario.namepath
+        // Find terminal nodes for this scenario
         const terminalNodes = scenario.path
-          .map((nodeId, index) => terminalNodeIds.has(nodeId) ? scenario.namepath[index] : null)
+          .map((nodeId, index) => terminalNodeIds.has(nodeId) ? this.escapeCsvValue(scenario.namepath[index]) : null)
           .filter(nodeName => nodeName !== null); // Remove null values
 
-        return `${scenario.name},${scenario.o},${terminalNodes.join(", ")}`;
-      }).join("\n");
+        fileContent += `${scenario.name},${scenario.o},${terminalNodes.join(",")}\n`;
+      });
 
       var blob = new Blob([fileContent], { type: "text/csv;charset=utf-8" });
       saveAs(blob, "Scenarios.csv");
@@ -167,7 +167,7 @@ class MenuBar extends Component {
       const collectTerminalNodes = (node) => {
         if (!node.operator || (node.operator !== "AND" && node.operator !== "OR")) {
           terminalNodes.push({
-            name: node.name || "",
+            name: this.escapeCsvValue(node.name) || "",
             o: node.o !== undefined ? node.o : "",
             a: node.a !== undefined ? node.a : "",
             t: node.t !== undefined ? node.t : "",

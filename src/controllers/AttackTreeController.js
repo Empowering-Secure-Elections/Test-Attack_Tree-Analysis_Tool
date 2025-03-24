@@ -300,18 +300,12 @@ export default class AttackTreeController {
     }
 
     // Set tree data removing square brackets from start and end
-    Window.map.openNotificationWithIcon(
-      "success",
-      "Tree Generation Successful",
-      ""
-    );
-    output = output.substring(1, output.length - 1)
+    output = output.substring(1, output.length - 1);
     Window.map.setTreeData(output);
-    console.log(output)
+    console.log(output);
     const treeAnalyzerController = new TreeAnalyzerController();
-    Window.map.setScenarioData(treeAnalyzerController.analyzeTree(
-      JSON.parse(output)
-    ));
+    Window.map.setScenarioData(treeAnalyzerController.analyzeTree(JSON.parse(output)));
+    Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
   }
 
   /**
@@ -544,14 +538,14 @@ export default class AttackTreeController {
       if (parentID !== null) {
         // Check if the parent node exists
         if (!nodes.has(parentID)) {
-          this.showError("Invalid Parent Reference", `Parent ID ${parentID} does not match any existing node ID.`);
+          this.showError("Invalid Parent Reference", `Parent ID ${parentID} does not match any existing node ID.`, i + 1);
           return;
         }
         let parent = nodes.get(parentID);
 
         // Check if the parent is a leaf node (which should not have children)
         if (parent.operator !== "AND" && parent.operator !== "OR") {
-          this.showError("Invalid Child Assignment", `Terminal/leaf node '${parentID}' cannot have children.`);
+          this.showError("Invalid Child Assignment", `Terminal/leaf node '${parentID}' cannot have children.`, i + 1);
           return;
         }
 
@@ -562,14 +556,14 @@ export default class AttackTreeController {
     // Check that all AND/OR nodes have at least one child
     for (let node of nodes.values()) {
       if ((node.operator === "AND" || node.operator === "OR") && node.children.length === 0) {
-        this.showError("Missing Children", `${node.operator} node '${node.ID}' must have at least one child.`);
+        this.showError("Missing Children", `${node.operator} node '${node.ID}' must have at least one child.`, i + 1);
         return;
       }
     }
 
     // Checks if there is one root node
     if (rootCount !== 1) {
-      this.showError("Root Node Error", "There can only be one root node.");
+      this.showError("Root Node Error", "There can only be one root node.", i + 1);
       return;
     }
 
