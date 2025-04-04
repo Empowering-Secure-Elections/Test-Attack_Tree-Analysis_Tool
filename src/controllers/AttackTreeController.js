@@ -1,4 +1,7 @@
 import TreeAnalyzerController from "./TreeAnalyzerController";
+let output;
+let noChange = false;
+let computed;
 
 export default class AttackTreeController {
 
@@ -114,7 +117,7 @@ export default class AttackTreeController {
    */
   parseDSL(text) {
     text = text.trim();
-    var output = "";
+    output = "";
     var lines = text.split("\n");
 
     //initial pass on text to ensure it has good form
@@ -302,10 +305,21 @@ export default class AttackTreeController {
     // Set tree data removing square brackets from start and end
     output = output.substring(1, output.length - 1);
     Window.map.setTreeData(output);
-    console.log(output);
-    const treeAnalyzerController = new TreeAnalyzerController();
-    Window.map.setScenarioData(treeAnalyzerController.analyzeTree(JSON.parse(output)));
+    console.log(JSON.parse(output));
+    noChange=false;
+    computed=null;
     Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
+  }
+
+  showScenario(){
+    const treeAnalyzerController = new TreeAnalyzerController();
+
+    if (!noChange){
+      noChange=true;
+      computed = treeAnalyzerController.analyzeTree(JSON.parse(output));
+    }
+
+    Window.map.setScenarioData(computed);
   }
 
   /**
@@ -569,12 +583,11 @@ export default class AttackTreeController {
 
     try {
       const root = [...nodes.values()].find(n => !n.ID.includes("."));
-      const output = JSON.stringify(root);
+      output = JSON.stringify(root);
       Window.map.setTreeData(output);
       console.log(output);
-
-      const treeAnalyzerController = new TreeAnalyzerController();
-      Window.map.setScenarioData(treeAnalyzerController.analyzeTree(root));
+      noChange=false;
+      computed=null;
 
       Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
     } catch (error) {

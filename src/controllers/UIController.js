@@ -1,9 +1,15 @@
 import AttackTreeController from "./AttackTreeController";
+let attackTreeController = new AttackTreeController();
 
 export default class UIController {
+
   getInputtedText() {
     const attackTreeController = new AttackTreeController();
     attackTreeController.parseInput(Window.map.getTextAreaValue());
+  }
+
+  genScenarios() {
+    attackTreeController.showScenario();
   }
 
   getImportedFile(text) {

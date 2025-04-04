@@ -6,6 +6,7 @@ export default class TreeAnalyzerController {
    * @return {Array} The list of paths.
    */
   analyzeTree(tree) {
+    console.log("Computing Scenarios");
     // Initialize empty path severity array.
     var pathSeverity = [];
     // Array to hold metric characters.

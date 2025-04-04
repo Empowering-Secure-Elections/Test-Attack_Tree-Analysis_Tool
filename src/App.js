@@ -970,6 +970,17 @@ class App extends React.Component {
   }
 
   showDrawer = () => {
+    
+    this.setState(
+      {
+        selectedRowsArray: [],
+        highestMetricsData: {},
+        generated: true,
+      },
+      () => {
+        uiController.genScenarios();
+      }
+    );
     this.setState({ visible: true });
   };
 
@@ -1069,7 +1080,7 @@ class App extends React.Component {
                 alignItems: "center",
               }}
             >
-              <Button onClick={this.generate}>Generate</Button>
+              <Button onClick={this.generate}>Show Tree</Button>
               <Button onClick={this.showDrawer}>Show Scenarios</Button>
             </div>
           </Sider>
