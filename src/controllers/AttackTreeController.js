@@ -740,7 +740,7 @@ export default class AttackTreeController {
       }
 
       // Create node object
-      let node = { ID, name };
+      let node = { ID, name, _lineNumber: i + 1 };
       if (type === "O" || type === "A") {
         node.operator = type === "O" ? "OR" : "AND";
         node.children = [];
@@ -772,7 +772,7 @@ export default class AttackTreeController {
               isAmbiguous = true; // Mark as ambiguous
             } else if (isIntegerInRange(a) && isIntegerInRange(t) && isIntegerInRange(d)) {
               currentNodeScale = "INT";
-            } else if (0 < a <= 1 && 0 < t <= 1 && 0 < d <= 1) { //else if (isFloatScale(a, t, d)) {
+            } else if (0 < a && a <= 1 && 0 < t && t <= 1 && 0 < d && d <= 1) {
               currentNodeScale = "FLOAT";
             } else {
               this.showError(
@@ -797,7 +797,7 @@ export default class AttackTreeController {
               isAmbiguous = true;
             } else if (isIntegerInRange(a) && isIntegerInRange(t) && isIntegerInRange(d)) {
               currentNodeScale = "INT";
-            } else if (0 < a <= 1 && 0 < t <= 1 && 0 < d <= 1) { //else if (isFloatScale(a, t, d)) {
+            } else if (0 < a && a <= 1 && 0 < t && t <= 1 && 0 < d && d <= 1) {
               currentNodeScale = "FLOAT";
             } else {
               this.showError(
@@ -953,14 +953,14 @@ export default class AttackTreeController {
       if (parentID !== null) {
         // Check if the parent node exists
         if (!nodes.has(parentID)) {
-          this.showError("Invalid Parent Reference", `Parent ID ${parentID} does not match any existing node ID.`, i + 1);
+          this.showError("Invalid Parent Reference", `Parent ID '${parentID}' does not match any existing node ID.`, node._lineNumber);
           return;
         }
         let parent = nodes.get(parentID);
 
         // Check if the parent is a leaf node (which should not have children)
         if (parent.operator !== "AND" && parent.operator !== "OR") {
-          this.showError("Invalid Child Assignment", `Terminal/leaf node '${parentID}' cannot have children.`, i + 1);
+          this.showError("Invalid Child Assignment", `Terminal/leaf node '${parentID}' cannot have children.`, node._lineNumber);
           return;
         }
 
@@ -969,20 +969,25 @@ export default class AttackTreeController {
     }
 
     // Check that all AND/OR nodes have at least one child
-    for (let node of nodes.values()) {
+    for (let [ID, node] of nodes) {
       if ((node.operator === "AND" || node.operator === "OR") && node.children.length === 0) {
-        this.showError("Missing Children", `${node.operator} node '${node.ID}' must have at least one child.`, i + 1);
+        this.showError("Missing Children", `${node.operator} node '${ID}' must have at least one child.`, node._lineNumber);
         return;
       }
     }
 
     // Checks if there is one root node
     if (rootCount !== 1) {
-      this.showError("Root Node Error", "There can only be one root node.", i + 1);
+      this.showError("Root Node Error", "There can only be one root node.", 1);
       return;
     }
 
     try {
+      // Clean up temporary properties before outputting
+      for (let node of nodes.values()) {
+        delete node._lineNumber;
+      }
+
       const root = [...nodes.values()].find(n => !n.ID.includes("."));
       const output = JSON.stringify(root);
       console.log(output);
@@ -999,7 +1004,7 @@ export default class AttackTreeController {
 
     // Helper function for scale detection
     function isIntegerInRange(value) {
-      return Number.isInteger(value) && 1 <= value <= 5;
+      return Number.isInteger(value) && value >= 1 && value <= 5;
     }
   }
 
@@ -1114,18 +1119,6 @@ export default class AttackTreeController {
       return value.slice(1, -1).replace(/""/g, '"'); // Remove surrounding quotes & restore inner quotes
     }
     return value.replace(/""/g, '"'); // Just restore escaped quotes if no surrounding quotes
-  }
-
-  /**
-   * Calculates the 'o' metric using weighted values.
-   * TODO - delete after you take this out of parseCSV
-   */
-  calculateMetricO(a, t, d, weightA, weightT, weightD) {
-    let tempA = 0.04 / a;
-    let tempT = 0.04 / t;
-    let tempD = 0.04 / d;
-
-    return (tempA * weightA) + (tempT * weightT) + (tempD * weightD);
   }
 
   /**
