@@ -1,4 +1,7 @@
 import TreeAnalyzerController from "./TreeAnalyzerController";
+let output;
+let noChange = false;
+let computed;
 
 export default class AttackTreeController {
 
@@ -118,7 +121,7 @@ export default class AttackTreeController {
    */
   parseDSL(text) {
     text = text.trim();
-    var output = "";
+    output = "";
     var lines = text.split("\n");
     var identifier = 0;
     let metricsNo = null; // null = undecided, 0 = no metrics, 3 = three metrics, 4 = four metrics
@@ -465,11 +468,23 @@ export default class AttackTreeController {
 
     // Set tree data removing square brackets from start and end
     output = output.substring(1, output.length - 1);
+    // console.log(JSON.parse(output)); TODO was this what it was before?
     console.log(output);
     Window.map.setTreeData(output);
-    const treeAnalyzerController = new TreeAnalyzerController();
-    Window.map.setScenarioData(treeAnalyzerController.analyzeTree(JSON.parse(output)));
+    noChange=false;
+    computed=null;
     Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
+  }
+
+  showScenario(){
+    const treeAnalyzerController = new TreeAnalyzerController();
+
+    if (!noChange){
+      noChange=true;
+      computed = treeAnalyzerController.analyzeTree(JSON.parse(output));
+    }
+
+    Window.map.setScenarioData(computed);
   }
 
   /**
@@ -988,14 +1003,12 @@ export default class AttackTreeController {
         delete node._lineNumber;
       }
 
-      const root = [...nodes.values()].find(n => !n.ID.includes("."));
-      const output = JSON.stringify(root);
+      const root = [...nodes.values()].find(n => !n.ID.includes("."));      
+      output = JSON.stringify(root);
       console.log(output);
       Window.map.setTreeData(output);
-
-      const treeAnalyzerController = new TreeAnalyzerController();
-      Window.map.setScenarioData(treeAnalyzerController.analyzeTree(root));
-
+      noChange=false;
+      computed=null;
       Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
     } catch (error) {
       console.error("Error parsing CSV:", error);
