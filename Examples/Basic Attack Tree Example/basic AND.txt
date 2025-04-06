@@ -3,7 +3,7 @@ Open Safe;OR
 	Learn Combo;OR
 		Find Combo;o=0.2;a=0.2;t=1;d=1
 		Acquire Combo;OR
-			Threaten;o=0.2;a=0.4;t=0.2;d=0
+			Threaten;o=0.2;a=0.4;t=0.2;d=0.2
 			Eavesdrop;AND
 				Listen to conversation;o=0.6;a=0.4;t=0.6;d=0.8
 				Get target to say combination;o=0.6;a=0.4;t=0.6;d=0.8
