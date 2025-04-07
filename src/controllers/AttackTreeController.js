@@ -468,7 +468,6 @@ export default class AttackTreeController {
 
     // Set tree data removing square brackets from start and end
     output = output.substring(1, output.length - 1);
-    // console.log(JSON.parse(output)); TODO was this what it was before?
     console.log(output);
     Window.map.setTreeData(output);
     noChange=false;

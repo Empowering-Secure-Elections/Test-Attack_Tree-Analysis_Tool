@@ -147,63 +147,46 @@ export default class TreeAnalyzerController {
    */
   generatePaths(tree) {
     let paths = [];
-    //base case; if a leaf node or root node by itself
-    if (!("children" in tree)) {
-      // Add an array to paths with the current node.
-      console.log(tree);
-      paths.push([
-        {
-          id: tree["ID"],
-          value: this.calculateAverage(tree),
-          metrics: this.getMetrics(tree),
-          name: tree["name"],
-        },
-      ]);
-      return paths;
-    }
-    //is a parent node
-    else {
-      // Get children from the current node.
-      var children = tree["children"];
-      // Iterate across children and generate paths.
-      for (var i = 0; i < children.length; i++) {
-        var result = this.generatePaths(children[i]);
-        if (tree["operator"] === "OR") {
-          // For each path in the result, add the current node id to the front of the path.
-          for (var j = 0; j < result.length; j++) {
-            //result[j].unshift(tree["ID"]);
-            // Add resulting path to list of paths to return.
-            paths.push(result[j]);
-          }
-        } else {
-          //AND node
-          if (paths.length > 0) {
-            var newPaths = [];
-            for (var j = 0; j < result.length; j++) {
-              for (var k = 0; k < paths.length; k++) {
-                var tempPaths = JSON.parse(JSON.stringify(paths));
-                tempPaths[k].push(result[j]);
-                newPaths.push(tempPaths[k].flat());
-              }
+    let stack = [{ node: tree, path: [] }];
+    while (stack.length > 0) {
+      let { node, path } = stack.pop();
+      let currentNodeInfo = {
+        id: node["ID"],
+        value: this.calculateAverage(node),
+        metrics: this.getMetrics(node),
+        name: node["name"],
+      };
+      let currentPath = [...path, currentNodeInfo];
+      // Leaf node
+      if (!("children" in node) || node.children.length === 0) {
+        paths.push(currentPath);
+        continue;
+      }
+      if (node["operator"] === "OR") {
+        // For "OR", just explore each child independently
+        for (let child of node.children) {
+          stack.push({ node: child, path: currentPath });
+        }
+      } else if (node["operator"] === "AND") {
+        // For "AND", combine paths from all children
+        let childPaths = [[]];
+        for (let child of node.children) {
+          let subPaths = this.generatePaths(child);
+          let newChildPaths = [];
+          for (let base of childPaths) {
+            for (let sub of subPaths) {
+              newChildPaths.push([...base, ...sub]);
             }
-            // assign deep copy to path
-            paths = JSON.parse(JSON.stringify(newPaths));
-          } else {
-            //asign deep copy to path
-            paths = JSON.parse(JSON.stringify(result));
           }
-          // Add resulting path to list of paths to return.
-          //paths = paths.flat();
+          childPaths = newChildPaths;
+        }
+        // Now prefix current node to each combined child path
+        for (let childPath of childPaths) {
+          paths.push([...currentPath, ...childPath]);
         }
       }
-      // Iterate across paths and add current node id at front.
-      for (var j = 0; j < paths.length; j++) {
-        console.log(paths);
-        paths[j].unshift({ id: tree["ID"], value: 0, name: tree["name"] });
-      }
-      console.log(paths);
-      return paths;
     }
+    return paths;
   }
 
   getMetrics(tree) {
