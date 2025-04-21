@@ -584,7 +584,7 @@ class App extends React.Component {
 
       pdf.text(node.name, xPosition, yPosition);
       yPosition += lineHeight;
-      pdf.text(`a: ${node.a}, t: ${node.t}, d: ${node.d}, o: ${node.o}`, xPosition + 10, yPosition);
+      pdf.text(`a: ${node.a}, t: ${node.t}, d: ${node.d}, o: ${node.o}`, xPosition, yPosition);
       yPosition += lineHeight + 10;
     });
 

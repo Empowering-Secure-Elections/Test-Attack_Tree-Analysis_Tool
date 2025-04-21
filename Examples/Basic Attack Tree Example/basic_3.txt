@@ -1,0 +1,11 @@
+0.33;0.33;0.33
+Open Safe;OR
+	Pick Lock;a=0.4;t=0.2;d=0.4
+	Learn Combo;OR
+		Find Combo;a=0.6;t=0.6;d=1
+		Acquire Combo;OR
+			Threaten;a=1;t=0.8;d=0.8
+			Eavesdrop;AND
+				Listen to conversation;a=0.8;t=0.4;d=0.4
+				Get target to say combination;a=0.8;t=0.6;d=0.4
+	Cut Open Safe;a=0.8;t=0.8;d=0.2

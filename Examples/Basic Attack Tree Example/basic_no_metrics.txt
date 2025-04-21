@@ -1,0 +1,10 @@
+Open Safe;OR
+	Pick Lock
+	Learn Combo;OR
+		Find Combo
+		Acquire Combo;OR
+			Threaten
+			Eavesdrop;AND
+				Listen to conversation
+				Get target to say combination
+	Cut Open Safe
