@@ -5,26 +5,18 @@
   "description": "AT-AT",
   "license": "MIT",
   "private": true,
-  "main": "public/electron.js",
+  "main": "server/index.js",
   "homepage": "./",
   "dependencies": {
     "@ant-design/colors": "^6.0.0",
-    "@electron-forge/cli": "^6.0.0-beta.63",
-    "@electron-forge/maker-deb": "^6.0.0-beta.63",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.63",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
-    "@electron-forge/maker-zip": "^6.0.0-beta.63",
     "@svgdotjs/svg.js": "^3.2.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
     "antd": "^4.16.13",
     "codemirror": "^5.64.0",
-    "concurrent": "^0.3.2",
     "cross-env": "^7.0.3",
-    "electron": "^15.1.2",
-    "electron-is-dev": "^2.0.0",
-    "electron-squirrel-startup": "^1.0.0",
+    "express": "^4.21.2",
     "file-saver": "^2.0.5",
     "jspdf": "^2.5.2",
     "react": "^16.14.0",
@@ -40,10 +32,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev": "concurrently -k \"cross-env BROWSER=none npm start\" \"npm:electron\"",
-    "electron": "wait-on tcp:3000 && electron-forge start",
-    "package": "react-scripts build && electron-forge package",
-    "make": "react-scripts build && electron-forge make"
+    "serve": "node server/index.js"
   },
   "browserslist": {
     "production": [
@@ -56,46 +45,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.63",
-    "@electron-forge/maker-deb": "^6.0.0-beta.63",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.63",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
-    "@electron-forge/maker-zip": "^6.0.0-beta.63",
-    "concurrently": "^6.5.1",
-    "electron": "^15.1.2",
-    "electron-is-dev": "^2.0.0",
-    "wait-on": "^6.0.1"
-  },
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "asar": true
-      },
-      "name": "AT-AT",
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "electron_react_demo"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ]
-    }
   }
 }

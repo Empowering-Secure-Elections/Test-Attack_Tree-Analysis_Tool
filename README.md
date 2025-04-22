@@ -29,29 +29,24 @@ AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop 
 
 In the project directory, you can run:
 
-### `npm run dev`
+### `npm run start`
 
 #### Required Software
 Node.js (from https://nodejs.org/en)
 
 ##### Required Node Packages
-- `npm install -g concurrent`
 - `npm install --global cross-env`
-- `npm install -g wait-on`
+- `npm install express`
 - `npm install react-scripts@latest`
 - `npm install react`
 
-Runs the app in the development mode.\
+##### Install Packages 
+`npm install`
+
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.\
+Once edits have been made reload the page to see changes.\
 You will also see any lint errors in the console.
-
-### `npm run make`
-
-Complies the app as an executable for distribution to the `out` folder.
-It correctly bundles React in production mode and optimizes the app for the best performance.
-The app is minified and the filenames include the hashes.
 
 #### How to build linux binaries under 'node:16-alpine' docker image
 
@@ -75,8 +70,6 @@ The app is minified and the filenames include the hashes.
 Node.js (from https://nodejs.org/en)
 
 #### Node Packages
-- `npm install -g concurrent`
-- `npm install --global cross-env`
-- `npm install -g wait-on`
+- `npm install -g express`
 - `npm install react-scripts@latest`
 - `npm install react`
