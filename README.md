@@ -17,6 +17,10 @@ AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop 
 - Generates a PDF file with the graphic of the attack tree
 - Generates a PDF report of an individual scenario with the attack scenario tree graphic and the list of terminal nodes in the scenario
 
+
+https://github.com/user-attachments/assets/764c1f19-6db7-4dd5-84dd-41b8d0cb141e
+
+
 ## Documentation
 
 [User Manual](Documentation/ESE%20AT%20AT%20User%20Manual.pdf)
