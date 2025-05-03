@@ -23,7 +23,7 @@ https://github.com/user-attachments/assets/764c1f19-6db7-4dd5-84dd-41b8d0cb141e
 
 ## Documentation
 
-[User Manual](Documentation/ESE%20AT%20AT%20User%20Manual.pdf)
+[User Manual](docs/ESE%20AT%20AT%20User%20Manual.pdf)
 
 ## Download
 

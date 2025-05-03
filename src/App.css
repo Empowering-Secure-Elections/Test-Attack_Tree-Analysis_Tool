@@ -38,10 +38,22 @@
   }
 }
 
-/* Updates for resizable feature */
-.resizable {
-  min-width: 500px; 
+.resize-handle {
+  width: 5px;
+  cursor: ew-resize;
+  background-color: #d3d3d3;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+#code_sider {
+  position: relative;
+  min-width: 300px;
   max-width: 100%;
+  overflow: auto;
 }
 
 /* CodeMirror scroller */

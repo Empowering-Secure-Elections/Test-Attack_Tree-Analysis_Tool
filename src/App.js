@@ -85,6 +85,7 @@ class App extends React.Component {
       visible: false,
       activeKey: currentPanes[0].key,
       panes: currentPanes,
+      siderWidth: 450,
       treeData: { name: "" },
       treeDataSaved: {},
       scenarioData: [],
@@ -143,25 +144,12 @@ class App extends React.Component {
    * When a component mounts on the DOM object.
    */
   componentDidMount() {
-    // Set the size to width 350 and height 650.
     window.addEventListener("resize", this.handleResize);
-    // Calculate the height to be the inner window height minus the generate
-    // height and subtract the tab height to maximize the codemirror height.
-    console.log(document.getElementById("tree").offsetWidth.toString() + "px");
-    console.log(document.getElementsByClassName("ant-menu")[0]);
-    this.instance.setSize(
-      450, // modified from 350 to 450
-      window.innerHeight -
-      document.getElementById("generateButtonDiv").scrollHeight -
-      document.getElementsByClassName("ant-tabs")[0].clientHeight -
-      document.getElementsByClassName("ant-menu")[0].scrollHeight
-    );
-
-    // Check if recommendation box present before getting the style.
+    this.updateEditorSize();
     if (document.getElementById("recommendation_box")) {
       document.getElementById("recommendation_box").style.width =
         window.innerWidth -
-        document.getElementById("code_sider").offsetWidth.toString() +
+        document.getElementById("code_sider").offsetWidth +
         "px";
     }
     Window.map = this;
@@ -171,21 +159,47 @@ class App extends React.Component {
     window.removeEventListener("resize", this.handleResize);
   }
 
-  // Code in handleResize should be in componentDidMount.
-  handleResize = (e) => {
+  handleResize = () => {
+    this.updateEditorSize();
     if (document.getElementById("recommendation_box")) {
       document.getElementById("recommendation_box").style.width =
         window.innerWidth -
-        document.getElementById("code_sider").offsetWidth.toString() +
+        document.getElementById("code_sider").offsetWidth +
         "px";
     }
-    this.instance.setSize(
-      450, // modified from 350 to 450
+  };
+
+  updateEditorSize = () => {
+    const siderWidth = document.getElementById("code_sider").offsetWidth;
+    const height =
       window.innerHeight -
       document.getElementById("generateButtonDiv").scrollHeight -
       document.getElementsByClassName("ant-tabs")[0].clientHeight -
-      document.getElementsByClassName("ant-menu")[0].scrollHeight
-    );
+      document.getElementsByClassName("ant-menu")[0].scrollHeight;
+
+    this.instance.setSize(siderWidth, height);
+  };
+
+  initResize = (e) => {
+    e.preventDefault();
+    window.addEventListener("mousemove", this.resize);
+    window.addEventListener("mouseup", this.stopResize);
+  };
+
+  resize = (e) => {
+    const minWidth = 300;
+    const maxWidth = 1000;
+    const newWidth = e.clientX;
+    if (newWidth > minWidth && newWidth < maxWidth) {
+      this.setState({ siderWidth: newWidth }, () => {
+        this.updateEditorSize();
+      });
+    }
+  };
+
+  stopResize = () => {
+    window.removeEventListener("mousemove", this.resize);
+    window.removeEventListener("mouseup", this.stopResize);
   };
 
   /**
@@ -973,7 +987,6 @@ class App extends React.Component {
   showDrawer = () => {
     this.setState(
       {
-        highestMetricsData: {},
         generated: true,
       },
       () => {
@@ -1059,7 +1072,7 @@ class App extends React.Component {
           ))}
         </Tabs>
         <Layout>
-          <Sider width={450} id="code_sider">
+          <Sider width={this.state.siderWidth} id="code_sider">
             <div className="resizable">
               <CodeMirror
                 editorDidMount={(editor) => {
@@ -1090,6 +1103,10 @@ class App extends React.Component {
               <Button id="showTreeButton" disabled={this.state.showTreeDisabled} onClick={this.generate}>Show Tree</Button>
               <Button id="showScenariosButton" disabled={!this.state.showTreeDisabled} onClick={this.showDrawer}>Show Scenarios</Button>
             </div>
+            <div
+              className="resize-handle"
+              onMouseDown={this.initResize}
+            />
           </Sider>
           <Layout>
             <Content id="tree">
@@ -1100,7 +1117,7 @@ class App extends React.Component {
               placement="right"
               onClose={this.onClose}
               visible={this.state.visible}
-              width={550}
+              width={600}
             >
               <Button onClick={this.clearSelection}>Clear</Button>
               <Table
