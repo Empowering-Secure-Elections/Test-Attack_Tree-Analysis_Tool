@@ -93,6 +93,7 @@ class App extends React.Component {
       specificRecommendationsData: {},
       showRecommendations: false,
       generated: false,
+      showTreeDisabled: false,
     };
     this.rowSelectionOnChange = this.rowSelectionOnChange.bind(this);
   }
@@ -970,10 +971,8 @@ class App extends React.Component {
   }
 
   showDrawer = () => {
-    
     this.setState(
       {
-        selectedRowsArray: [],
         highestMetricsData: {},
         generated: true,
       },
@@ -996,7 +995,10 @@ class App extends React.Component {
         generated: true,
       },
       () => {
-        uiController.getInputtedText();
+        const success = uiController.getInputtedText();
+        if (success) {
+          this.setState({ showTreeDisabled: true });
+        }
       }
     );
   };
@@ -1063,6 +1065,11 @@ class App extends React.Component {
                 editorDidMount={(editor) => {
                   this.instance = editor;
                 }}
+                onChange={(editor, data, value) => {
+                  this.setState({ showTreeDisabled: false });
+                  document.getElementById("showTreeButton").disabled = this.state.showTreeDisabled;
+                  document.getElementById("showScenariosButton").disabled = !this.state.showTreeDisabled;
+                }}
                 options={{
                   mode: null,
                   lineNumbers: true,
@@ -1080,8 +1087,8 @@ class App extends React.Component {
                 alignItems: "center",
               }}
             >
-              <Button onClick={this.generate}>Show Tree</Button>
-              <Button onClick={this.showDrawer}>Show Scenarios</Button>
+              <Button id="showTreeButton" disabled={this.state.showTreeDisabled} onClick={this.generate}>Show Tree</Button>
+              <Button id="showScenariosButton" disabled={!this.state.showTreeDisabled} onClick={this.showDrawer}>Show Scenarios</Button>
             </div>
           </Sider>
           <Layout>

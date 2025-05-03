@@ -5,7 +5,8 @@ export default class UIController {
 
   getInputtedText() {
     const attackTreeController = new AttackTreeController();
-    attackTreeController.parseInput(Window.map.getTextAreaValue());
+    const success = attackTreeController.parseInput(Window.map.getTextAreaValue());
+    return success;
   }
 
   genScenarios() {

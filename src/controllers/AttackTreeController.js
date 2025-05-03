@@ -14,14 +14,16 @@ export default class AttackTreeController {
 
     if (format === "DSL") {
       console.log("dsl");
-      this.parseDSL(text);
+      return this.parseDSL(text);
     } else if (format === "CSV") {
       console.log("csv");
-      this.parseCSV(text);
+      return this.parseCSV(text);
     } else if (format === "TOO_SHORT") {
       Window.map.openNotificationWithIcon("error", "Input too short", "Input must be at least 3 lines long");
+      return 0; // exit status of fail
     } else {
       Window.map.openNotificationWithIcon("error", "Format Error", "Input format is not recognized");
+      return 0; // exit status of fail
     }
   }
 
@@ -117,7 +119,7 @@ export default class AttackTreeController {
   /**
    * Parse the DSL.
    * @param {string} text A line of text.
-   * @return {Array} The result of verifying the pattern.
+   * @return {number} The exit status.
    */
   parseDSL(text) {
     text = text.trim();
@@ -142,7 +144,7 @@ export default class AttackTreeController {
     const totalWeight = weightA + weightT + weightD;
     if (totalWeight < 0.97 || totalWeight > 1.03) {
       this.showError("Invalid Weights", `The sum of weights should be approximately 1, with a ±0.03 margin allowed for rounding. Found: ${totalWeight.toFixed(2)}.`, 1);
-      return;
+      return 0; // exit status of fail
     }
 
     // Initial pass on text to ensure it has good form
@@ -150,7 +152,7 @@ export default class AttackTreeController {
       var result = this.patternMatch(lines[i]);
       if (result[0] === false) {
         this.showError(result[1], result[2], i + 1);
-        return;
+        return 0; // exit status of fail
         // stop execution
       }
     }
@@ -171,7 +173,7 @@ export default class AttackTreeController {
     if (prevLineNum !== 1) {
       console.log("Should start with no tab");
       this.showError("Start Tab", "Should start with no tab", 1);
-      return;
+      return 0; // exit status of fail
     }
     var second_split = this.getLineText(lines[0]).split(";");
 
@@ -183,7 +185,7 @@ export default class AttackTreeController {
     if (this.getLineText(lines[0]).match(nodeRegex) === null) {
       console.log("Node syntax bad");
       this.showError("Verification Error", "Must be <text>;<OR|AND>", 1);
-      return;
+      return 0; // exit status of fail
     }
 
     output +=
@@ -234,7 +236,7 @@ export default class AttackTreeController {
               }
             } else {
               this.showError("Incomplete Metrics", "Either no metrics, three metrics (a, t, d), or four metrics (o, a, t, d) must be listed.", i + 1);
-              return;
+              return 0; // exit status of fail
             }
 
             // Validate metrics against scale if scale is determined
@@ -242,7 +244,7 @@ export default class AttackTreeController {
               const metricsVerif = this.validateMetricsForScale(second_split, metricScale);
               if (!metricsVerif[0]) {
                 this.showError(metricsVerif[1], metricsVerif[2], i + 1);
-                return;
+                return 0; // exit status of fail
               }
             }
 
@@ -255,7 +257,7 @@ export default class AttackTreeController {
                 "All leaf nodes must have the same number of metrics: either none, three (a, t, d), or four (o, a, t, d).",
                 i + 1
               );
-              return;
+              return 0; // exit status of fail
             }
           }
         }
@@ -274,7 +276,7 @@ export default class AttackTreeController {
           }
         } else if (Object.keys(metrics_map).length > 0) {
           this.showError("Incomplete Metrics", "Either no metrics, three metrics (a, t, d), or four metrics (o, a, t, d) must be listed.", i + 1);
-          return;
+          return 0; // exit status of fail
         }
 
         if (metricsNo === null) {
@@ -285,7 +287,7 @@ export default class AttackTreeController {
             "All leaf nodes must have the same number of metrics: either none, three (a, t, d), or four (o, a, t, d).",
             i + 1
           );
-          return;
+          return 0; // exit status of fail
         }
       }
     }
@@ -299,14 +301,14 @@ export default class AttackTreeController {
         let metricsVerif = this.validateMetricsForScale(second_split, metricScale);
         if (!metricsVerif[0]) {
           this.showError(metricsVerif[1], metricsVerif[2], i + 1);
-          return;
+          return 0; // exit status of fail
         }
       }
 
       var result = this.patternVerify(curr_num, prev_num, prevLineType);
       if (!result[0]) {
         this.showError(result[1], result[2], i + 1);
-        return;
+        return 0; // exit status of fail
         // stop execution
       }
 
@@ -347,7 +349,7 @@ export default class AttackTreeController {
           if (!metricsVerif[0]) {
             this.showError(metricsVerif[1], metricsVerif[2], i + 1);
             console.log("Metrics Bad");
-            return;
+            return 0; // exit status of fail
             // stop execution
           }
 
@@ -367,18 +369,18 @@ export default class AttackTreeController {
                 metrics_map.o = this.calculateMetricO(metrics_map.a, metrics_map.t, metrics_map.d, weightA, weightT, weightD, metricScale);
               } else {
                 this.showError("Ambiguous metric scale", "Metric scale (0,1] or [1,5] could not be determined", i + 1);
-                return;
+                return 0; // exit status of fail
               }
             }
           } else {
             this.showError("Incomplete Metrics", "Either no metrics, three metrics (a, t, d), or four metrics (o, a, t, d) must be listed.", i + 1);
-            return;
+            return 0; // exit status of fail
           }
 
           // Check if metrics match the determined format
           if (metricsNo !== 0 && currentMetricsNo === 0) {
             this.showError("Missing Metrics", `Expected ${metricsNo} metrics but found none for this leaf node.`, i + 1);
-            return;
+            return 0; // exit status of fail
           }
 
           // Add metrics to output
@@ -397,7 +399,7 @@ export default class AttackTreeController {
             console.log(lines[i]);
             console.log("Node syntax bad");
             this.showError("Verification Error", "Must be <text>;<OR|AND>", i + 1);
-            return;
+            return 0; // exit status of fail
             // stop execution
           }
           output +=
@@ -412,7 +414,7 @@ export default class AttackTreeController {
         if (!metricsVerif[0]) {
           this.showError(metricsVerif[1], metricsVerif[2], i + 1);
           console.log("Metrics Bad");
-          return;
+          return 0; // exit status of fail
           // stop execution
         }
 
@@ -435,18 +437,18 @@ export default class AttackTreeController {
               metrics_map.o = this.calculateMetricO(metrics_map.a, metrics_map.t, metrics_map.d, weightA, weightT, weightD, metricScale);
             } else {
               this.showError("Ambiguous metric scale", "Metric scale (0,1] or [1,5] could not be determined", i + 1);
-              return;
+              return 0; // exit status of fail
             }
           }
         } else {
           this.showError("Incomplete Metrics", "Either no metrics, three metrics (a, t, d), or four metrics (o, a, t, d) must be listed.", i + 1);
-          return;
+          return 0; // exit status of fail
         }
 
         // Check if metrics match the determined format
         if (metricsNo !== 0 && currentMetricsNo === 0) {
           this.showError("Missing Metrics", `Expected ${metricsNo} metrics but found none for this leaf node.`, i + 1);
-          return;
+          return 0; // exit status of fail
         }
 
         // Add metrics to output
@@ -470,16 +472,17 @@ export default class AttackTreeController {
     output = output.substring(1, output.length - 1);
     console.log(output);
     Window.map.setTreeData(output);
-    noChange=false;
-    computed=null;
+    noChange = false;
+    computed = null;
     Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
+    return 1; // exit status of success
   }
 
-  showScenario(){
+  showScenario() {
     const treeAnalyzerController = new TreeAnalyzerController();
 
-    if (!noChange){
-      noChange=true;
+    if (!noChange) {
+      noChange = true;
       computed = treeAnalyzerController.analyzeTree(JSON.parse(output));
     }
 
@@ -663,6 +666,7 @@ export default class AttackTreeController {
   /**
    * Parses the CSV-formatted text.
    * @param {string} text - The CSV input.
+   * @return {number} The exit status.
    */
   parseCSV(text) {
     text = text.trim();
@@ -697,14 +701,14 @@ export default class AttackTreeController {
     const totalWeight = weightA + weightT + weightD;
     if (totalWeight < 0.97 || totalWeight > 1.03) {
       this.showError("Invalid Weights", `The sum of weights should be approximately 1, with a ±0.03 margin allowed for rounding. Found: ${totalWeight.toFixed(2)}.`, 1);
-      return;
+      return 0; // exit status of fail
     }
 
     for (let i = 0; i < lines.length; i++) {
       let result = this.patternMatch(lines[i]);
       if (result[0] === false) {
         this.showError(result[1], result[2], i + 1);
-        return;
+        return 0; // exit status of fail
       }
     }
 
@@ -712,10 +716,10 @@ export default class AttackTreeController {
       const parts = this.parseCsvLine(lines[i]);
       if (parts.length < 3) {
         this.showError("Invalid Row Format", "Each row must have at least 3 columns (Type, ID, Name).", i + 1);
-        return;
+        return 0; // exit status of fail
       } else if (parts.length > 7 && parts.slice(7).some(part => part !== null && part !== "")) {
         this.showError("Unexpected Extra Data", "There should not be more than 7 columns.", i + 1);
-        return;
+        return 0; // exit status of fail
       }
 
       const type = parts[0].trim();
@@ -726,26 +730,26 @@ export default class AttackTreeController {
       // Check node type
       if (!["O", "A", "T"].includes(type)) {
         this.showError("Invalid Node Type", `Invalid node type '${type}'.`, i + 1);
-        return;
+        return 0; // exit status of fail
       }
 
       // Check ID format
       if (!/^[0-9]+(\.[0-9]+)*$/.test(ID)) {
         this.showError("Invalid ID Format", `Invalid node ID '${ID}'.`, i + 1);
-        return;
+        return 0; // exit status of fail
       }
 
       // Check for duplicate IDs
       if (seenIDs.has(ID)) {
         this.showError("Duplicate ID", `ID '${ID}' is used more than once.`, i + 1);
-        return;
+        return 0; // exit status of fail
       }
       seenIDs.add(ID);
 
       // Check for blank name
       if (name === "") {
         this.showError("Invalid Name", "Name cannot be blank.", i + 1);
-        return;
+        return 0; // exit status of fail
       }
 
       // Used to check how many root nodes exists
@@ -776,7 +780,7 @@ export default class AttackTreeController {
             // Validate 'o' is always on [0,1] scale
             if (isNaN(o) || o < 0 || o > 1) {
               this.showError("Invalid 'o' Metric", "The 'o' metric must be a number within 0-1 scale.", i + 1);
-              return;
+              return 0; // exit status of fail
             }
 
             // Determine scale for a, t, d metrics
@@ -794,7 +798,7 @@ export default class AttackTreeController {
                 "Metrics a, t, d must either all be integers in [1,5] or all be floats in (0,1].",
                 i + 1
               );
-              return;
+              return 0; // exit status of fail
             }
 
           } else {
@@ -819,7 +823,7 @@ export default class AttackTreeController {
                 "Metrics a, t, d must either all be integers in [1,5] or all be floats in (0,1].",
                 i + 1
               );
-              return;
+              return 0; // exit status of fail
             }
 
             if (!isAmbiguous) {
@@ -857,7 +861,7 @@ export default class AttackTreeController {
         const hasAllMetrics = metrics.every(m => m !== null);
         if (hasAnyMetric && !hasAllMetrics && !isAmbiguous) {
           this.showError("Incomplete Metrics", "Either no metrics, three metrics (a, t, d), or four metrics (o, a, t, d) must be listed.", i + 1);
-          return;
+          return 0; // exit status of fail
         }
 
         // Validate that leaf nodes have the same number of metrics
@@ -869,7 +873,7 @@ export default class AttackTreeController {
             "All leaf nodes must have the same number of metrics: either none, three (a, t, d), or four (o, a, t, d).",
             i + 1
           );
-          return;
+          return 0; // exit status of fail
         }
 
         // If this is the first node with a defined scale, set the global scale
@@ -884,19 +888,19 @@ export default class AttackTreeController {
             `All nodes must use the same metric scale. Expected ${metricScale === "INT" ? "[1,5] integers" : "(0,1] floats"}.`,
             i + 1
           );
-          return;
+          return 0; // exit status of fail
         }
 
         // If using metrics and not ambiguous, ensure they are all valid numbers
         if (hasAnyMetric && !isAmbiguous) {
           if (isNaN(o) || isNaN(a) || isNaN(t) || isNaN(d)) {
             this.showError("Invalid Metrics", "Metrics must be numbers.", i + 1);
-            return;
+            return 0; // exit status of fail
           } else {
             // Validate 'o' is always on [0,1] scale
             if (o < 0 || o > 1) {
               this.showError("Invalid 'o' Metric Range", "The 'o' metric must be within 0-1 scale.", i + 1);
-              return;
+              return 0; // exit status of fail
             }
 
             // Validate a, t, d based on the established scale
@@ -909,7 +913,7 @@ export default class AttackTreeController {
                   "When using integer scale, metrics a, t, d must be integers in range [1,5].",
                   i + 1
                 );
-                return;
+                return 0; // exit status of fail
               }
             } else if (currentScale === "FLOAT") {
               // Check that a, t, d are floats in (0,1]
@@ -919,7 +923,7 @@ export default class AttackTreeController {
                   "When using float scale, metrics a, t, d must be in range (0,1].",
                   i + 1
                 );
-                return;
+                return 0; // exit status of fail
               }
             }
 
@@ -949,7 +953,7 @@ export default class AttackTreeController {
           "Cannot determine scale. At least one node needs non-ambiguous metrics (a, t, d not all 1).",
           ambiguousNodes[0].nodeIndex + 1
         );
-        return;
+        return 0; // exit status of fail
       }
 
       // Process all ambiguous nodes now that we know the scale
@@ -968,14 +972,14 @@ export default class AttackTreeController {
         // Check if the parent node exists
         if (!nodes.has(parentID)) {
           this.showError("Invalid Parent Reference", `Parent ID '${parentID}' does not match any existing node ID.`, node._lineNumber);
-          return;
+          return 0; // exit status of fail
         }
         let parent = nodes.get(parentID);
 
         // Check if the parent is a leaf node (which should not have children)
         if (parent.operator !== "AND" && parent.operator !== "OR") {
           this.showError("Invalid Child Assignment", `Terminal/leaf node '${parentID}' cannot have children.`, node._lineNumber);
-          return;
+          return 0; // exit status of fail
         }
 
         parent.children.push(node);
@@ -986,14 +990,14 @@ export default class AttackTreeController {
     for (let [ID, node] of nodes) {
       if ((node.operator === "AND" || node.operator === "OR") && node.children.length === 0) {
         this.showError("Missing Children", `${node.operator} node '${ID}' must have at least one child.`, node._lineNumber);
-        return;
+        return 0; // exit status of fail
       }
     }
 
     // Checks if there is one root node
     if (rootCount !== 1) {
       this.showError("Root Node Error", "There can only be one root node.", 1);
-      return;
+      return 0; // exit status of fail
     }
 
     try {
@@ -1002,16 +1006,18 @@ export default class AttackTreeController {
         delete node._lineNumber;
       }
 
-      const root = [...nodes.values()].find(n => !n.ID.includes("."));      
+      const root = [...nodes.values()].find(n => !n.ID.includes("."));
       output = JSON.stringify(root);
       console.log(output);
       Window.map.setTreeData(output);
-      noChange=false;
-      computed=null;
+      noChange = false;
+      computed = null;
       Window.map.openNotificationWithIcon("success", "Tree Generation Successful", "");
+      return 1; // exit status of success
     } catch (error) {
       console.error("Error parsing CSV:", error);
       Window.map.openNotificationWithIcon("error", "Tree Generation Failed", "Invalid CSV format");
+      return 0; // exit status of fail
     }
 
     // Helper function for scale detection
