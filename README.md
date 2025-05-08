@@ -25,9 +25,13 @@ https://github.com/user-attachments/assets/764c1f19-6db7-4dd5-84dd-41b8d0cb141e
 
 [User Manual](docs/ESE%20AT%20AT%20User%20Manual.pdf)
 
+## Online Access
+
+You can access the latest version of this application online on the [Render website](https://attack-tree-analysis-tool.onrender.com/) at https://attack-tree-analysis-tool.onrender.com/.
+
 ## Download
 
-[Latest Release](https://github.com/Empowering-Secure-Elections/attack-tree_analysis_tool/releases/tag/baseline-v1.0)
+[Latest Release](https://github.com/Empowering-Secure-Elections/ESE-Attack_Tree-Analysis_Tool/releases/tag/v2.0.0)
 
 ## Available Scripts
 
@@ -36,9 +40,11 @@ In the project directory, you can run:
 ### `npm run start`
 
 ## Required Software
+
 Node.js (from https://nodejs.org/en)
 
 ##### Install Node Packages
+
 `npm install`
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.

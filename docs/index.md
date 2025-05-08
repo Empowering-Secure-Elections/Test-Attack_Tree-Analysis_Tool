@@ -23,11 +23,21 @@ AT-AT (Attack Tree Analysis Tool) is a application that allows users to develop 
 
 ## Documentation
 
-[User Manual](docs/ESE%20AT%20AT%20User%20Manual.pdf)
+[User Manual](ESE%20AT%20AT%20User%20Manual.pdf)
+
+## Online Access
+
+You can access the latest version of this application online on the [Render website](https://attack-tree-analysis-tool.onrender.com/) at https://attack-tree-analysis-tool.onrender.com/.
+
+## Example Inputs
+
+You can download these example inputs to generate an attack tree from.
+- [Basic DSL example input](https://github.com/Empowering-Secure-Elections/ESE-Attack_Tree-Analysis_Tool/blob/main/Examples/Basic%20Attack%20Tree%20Example/basic.txt)
+- [Basic CSV example input](https://github.com/Empowering-Secure-Elections/ESE-Attack_Tree-Analysis_Tool/blob/main/Examples/Basic%20Attack%20Tree%20Example/basic.csv)
 
 ## Download
 
-[Latest Release](https://github.com/Empowering-Secure-Elections/attack-tree_analysis_tool/releases/tag/baseline-v1.0)
+[Latest Release](https://github.com/Empowering-Secure-Elections/ESE-Attack_Tree-Analysis_Tool/releases/tag/v2.0.0)
 
 ## Available Scripts
 
@@ -36,9 +46,11 @@ In the project directory, you can run:
 ### `npm run start`
 
 ## Required Software
+
 Node.js (from https://nodejs.org/en)
 
 ##### Install Node Packages
+
 `npm install`
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
