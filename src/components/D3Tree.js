@@ -32,7 +32,8 @@ class D3Tree extends React.Component {
   }
 
   renderLeaf(nodeDatum, toggleNode) {
-    const textWidth = nodeDatum.name.length * 2; // Adjust the factor as needed for desired width
+    const name = nodeDatum?.name ?? '';
+    const textWidth = name.length * 2; // Adjust the factor as needed for desired width
     const boxWidth = textWidth + 50 ; // Add padding
     const boxHeight = 90; // Set a fixed height or adjust as needed
   

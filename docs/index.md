@@ -37,7 +37,7 @@ You can download these example inputs to generate an attack tree from.
 
 ## Download
 
-[Latest Release](https://github.com/Empowering-Secure-Elections/ESE-Attack_Tree-Analysis_Tool/releases/tag/v2.0.0)
+[Latest Release](https://github.com/Empowering-Secure-Elections/ESE-Attack_Tree-Analysis_Tool/releases/latest)
 
 ## Available Scripts
 

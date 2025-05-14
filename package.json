@@ -1,11 +1,21 @@
 {
-  "name": "attack-tree-analysis",
-  "version": "0.1.0",
+  "name": "attack-tree-analysis-tool",
+  "version": "2.0.0",
   "author": "Yathuvaran",
   "description": "AT-AT",
   "license": "MIT",
   "private": true,
   "main": "server/index.js",
+  "bin": "server/index.js",
+  "pkg": {
+    "targets": [
+      "node18-win-x64"
+    ],
+    "assets": [
+      "build/**/*"
+    ],
+    "outputPath": "dist"
+  },
   "homepage": "./",
   "dependencies": {
     "@ant-design/colors": "^6.0.0",
@@ -32,7 +42,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "serve": "node server/index.js"
+    "serve": "node server/index.js",
+    "pkg": "npm run build && pkg ."
   },
   "browserslist": {
     "production": [

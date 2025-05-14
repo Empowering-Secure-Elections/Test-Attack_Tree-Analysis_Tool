@@ -31,7 +31,7 @@ You can access the latest version of this application online on the [Render webs
 
 ## Download
 
-[Latest Release](https://github.com/Empowering-Secure-Elections/ESE-Attack_Tree-Analysis_Tool/releases/tag/v2.0.0)
+[Latest Release](https://github.com/Empowering-Secure-Elections/ESE-Attack_Tree-Analysis_Tool/releases/latest)
 
 ## Available Scripts
 
